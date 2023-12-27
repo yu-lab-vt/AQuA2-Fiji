@@ -11,7 +11,8 @@ For details, please visit [the main repository](https://github.com/yu-lab-vt/AQu
 
 # How to use:
 
-Please visit [the main repository](https://github.com/yu-lab-vt/AQuA2).
+In Fiji menu, select "Plugins -> AQuA2". Then everything would be similar to MATLAB GUI of AQuA2.
+For GUI instructions, please visit [the main repository](https://github.com/yu-lab-vt/AQuA2).
 
 # TODO Note:
 
