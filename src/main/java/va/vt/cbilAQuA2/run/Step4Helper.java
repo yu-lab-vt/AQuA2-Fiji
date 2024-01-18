@@ -829,6 +829,7 @@ public class Step4Helper {
 				}
 			}
 		}
+		
 		if (smoBase == 0 || Gij.length == 0) {
 			// -----------
 			midPoints = new float[nSp][T0 - 1];
@@ -850,7 +851,6 @@ public class Step4Helper {
 					initialCut[k][i] = initialCut0[i];
 			}
 			midPoints = Helper.BILCO(ref, tst, Gij, smoBase, initialCut);
-			
 		}
 		
 		// path + warping curves

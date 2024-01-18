@@ -561,7 +561,7 @@ public class Step3Helper {
 		    float[][] filteredSlice = GaussFilter.gaussFilter(slice, opts.spaSmo, opts.spaSmo);
 		    Helper.setSliceRev(scoreMap, filteredSlice, tt); 
 		}      
-		Helper.viewMatrix(10, 10,  1, "", scoreMap);
+//		Helper.viewMatrix(10, 10,  1, "", scoreMap);
 		
 		int[][][] Map = new int[H][W][T];
 		ArrayList<int[]> pix, pix1, newPix;

@@ -10,6 +10,9 @@ package va.vt.cbilAQuA2;
 
 import javax.swing.JOptionPane;
 
+import com.sun.jna.Native;
+import com.sun.jna.Pointer;
+
 import ij.ImagePlus;
 import ij.plugin.PlugIn;
 import inra.ijpb.watershed.MarkerControlledWatershedTransform3D;
@@ -39,6 +42,9 @@ public class AQuA2 implements PlugIn {
 		}
     }
     public static void check() {
+    	String os = System.getProperty("os.name").toLowerCase();
+		System.out.println(os);
+    	
     	try {
     		NonCentralT nctcdf = new NonCentralT(2, 0);
     	}catch (Exception e){
@@ -54,6 +60,15 @@ public class AQuA2 implements PlugIn {
     	}catch (Exception e){
     		JOptionPane.showMessageDialog(null, "Need to download MorphoLib.jar", "Message", JOptionPane.INFORMATION_MESSAGE);
     	}
+    	
+    	try {
+		    Pointer[] pIniCut = Helper.jna2DArray(new float[1][1]);
+		    float[][] distMatrix = new float[3][3];
+			float[] res = Helper.DTW_Edge_input(distMatrix);
+    	}catch (Exception e){
+    		JOptionPane.showMessageDialog(null, "Need to update Jna lib", "Message", JOptionPane.INFORMATION_MESSAGE);
+    	}
+    	System.out.println("Check done!");
     }
     
     public static void main(String[] args) {

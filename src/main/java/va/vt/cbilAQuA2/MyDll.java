@@ -3,7 +3,9 @@ package va.vt.cbilAQuA2;
 import com.sun.jna.*;
 
 public interface MyDll extends Library{
-	MyDll mydll = (MyDll) Native.load("DTW_Edge_input", MyDll.class);
+	String ext = Helper.getOsExt();
+	
+	MyDll mydll = (MyDll) Native.load("DTW_Edge_input" + ext, MyDll.class);
 	
 	Pointer print(Pointer a, int len);
 	

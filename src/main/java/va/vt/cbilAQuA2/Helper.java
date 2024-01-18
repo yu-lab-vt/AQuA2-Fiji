@@ -2804,6 +2804,20 @@ public class Helper {
 		if(i!=j)
 			list.set(j, i);
 	}
+
+	public static String getOsExt() {
+		// TODO Auto-generated method stub
+		String os = System.getProperty("os.name").toLowerCase();
+		if (os.contains("win")) {
+	        return ".dll";
+	    } else if (os.contains("nix") || os.contains("nux")) {
+	    	return ".so";
+	    } else if (os.contains("mac")){
+	        return "";
+	    } else {
+	    	return "";
+	    }
+	}
 	
 	
 }
