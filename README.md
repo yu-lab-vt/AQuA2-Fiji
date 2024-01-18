@@ -18,7 +18,6 @@ For GUI instructions, please visit [the main repository](https://github.com/yu-l
 # TODO Note:
 
 * Since the watershed packages in MATLAB and Fiji have some differences, the results may differ a little bit. Will unify these algorithms later.
-* Current jar can only work on 64-bit Windows system. Will adjust the code to make it compatible with Mac later.
 
 # Update:
 * 2024-01-18: Update files for Linux and Mac systems.
