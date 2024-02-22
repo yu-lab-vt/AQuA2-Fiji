@@ -79,7 +79,7 @@ public class Step1Helper {
 //      Helper.viewMatrix(10, 10, "stdMapOrg", stdMapOrg);
 //      Helper.viewMatrix(10, 10, "stdMapSmo", stdMapSmo);
 //      Helper.viewMatrix(10, 10, "tempVarOrg", tempVarOrg);
-//      Helper.viewMatrix(10, 10, "correctPars", correctPars); checked
+//      Helper.viewMatrix(10, 10, "correctPars", correctPars); 
       stopTime = System.currentTimeMillis();
       elapsedTime = stopTime - startTime;
       System.out.println("Elapsed time: " + elapsedTime + "ms");
@@ -165,13 +165,14 @@ public class Step1Helper {
       		int k = 0;
       		preP = 0;
       		curP = -1;
+      		
 //      		piecewise linear fill
       		while (k < nSegment) {
       			curP = minPosition[x][y][k];
       			if (curP >= 0) {
       				curV = F0[x][y][curP];
 //      				first segment
-      				if (preP == 0) {
+      				if (k == 0) {
       					for (int t = 0; t < curP; t++) {
       						curve[t] = curV;
       					}
@@ -313,6 +314,7 @@ public class Step1Helper {
 	  }
 	  
 	  fitF0Var(stdMapSmo, F0Pro, varMapSmo, validMap);
+//	  Helper.viewMatrix(10, 10, "stdMapSmo", stdMapSmo);
 	  for (int i = 0; i < H; i++) {
 		  for (int j = 0; j < W; j++) {
 			  stdMapSmo[i][j] *= correctMap2[i][j];

@@ -424,7 +424,7 @@ public class Step4Helper {
 		int nSeed = 0;
 		
 		float thr, mean1, mean2;
-		boolean[][] BW;
+		boolean[][] BW2D;
 		int[] p;
 		HashMap<Integer, ArrayList<int[]>> candidateRegions;
 		ArrayList<int[]> pix;
@@ -433,13 +433,13 @@ public class Step4Helper {
 		HashSet<Integer> seedsInRegion, pixHash, pixGrow, newAdd, neighbor, newAdd0;
 		for (int k = 0; k < thrs.length; k++) {
 			thr = thrs[k];
-			BW = new boolean[H][W];
+			BW2D = new boolean[H][W];
 			for (int i = 0; i < ihw.size(); i++) {
 				p = ihw.get(i);
-				BW[p[0]][p[1]] = dlyMap[p[0]][p[1]] < thr;
+				BW2D[p[0]][p[1]] = dlyMap[p[0]][p[1]] < thr;
 			}
 			candidateRegions = new HashMap<Integer, ArrayList<int[]>>();
-			Helper.bfsConn2D(BW, candidateRegions);
+			Helper.bfsConn2D(BW2D, candidateRegions);
 			select = new boolean[candidateRegions.size()];
 			for (int i = 1; i <= candidateRegions.size(); i++) {
 				select[i - 1] = candidateRegions.get(i).size() > Math.max(ihw.size() * opts.sourceSzRatio, opts.minSize);
@@ -509,26 +509,94 @@ public class Step4Helper {
 			return svLabel;
 		}
 
-		int[][] mask0 = new int[H][W];
-		Helper.setValue(mask0, ihw, 1);
+
+		boolean[][][] BW = new boolean[1][H][W];
+		for (int pId = 0; pId < ihw.size(); pId++) {
+			p = ihw.get(pId);
+			BW[0][p[0]][p[1]] = true;
+		}
+		int[][] shifts = new int[13][2];
+		shifts[0] = new int[] {0, -2, 0};
+		shifts[1] = new int[] {0, -1, -1};
+		shifts[2] = new int[] {0, -1, 0};
+		shifts[3] = new int[] {0, -1, 1};
+		shifts[4] = new int[] {0, 0, -2};
+		shifts[5] = new int[] {0, 0, -1};
+		shifts[6] = new int[] {0, 0, 0};
+		shifts[7] = new int[] {0, 0, 1};
+		shifts[8] = new int[] {0, 0, 2};
+		shifts[9] = new int[] {0, 1, -1};
+		shifts[10] = new int[] {0, 1, 0};
+		shifts[11] = new int[] {0, 1, 1};
+		shifts[12] = new int[] {0, 2, 0};
 		
-		ImagePlus input = Helper.convertToImgPlus(dlyMap);
-		ImagePlus marker = Helper.convertToImgPlus(seedMap);
-		ImagePlus mask = Helper.convertToImgPlus(mask0);
-		MarkerControlledWatershedTransform3D watershed = new MarkerControlledWatershedTransform3D (input, marker, mask, 26);
-		ImagePlus result = watershed.applyWithSortedListAndDams();
-		float[][] MapOut = Helper.getSlice(Helper.convertImgPlusToArray(result), 0);
+		float[][][] scoreMap0 = new float[1][H][W];
+		for (int x = 0; x < H; x++) {
+			for (int y = 0; y < W; y++) {
+				if(Float.isNaN(dlyMap[x][y]))
+					scoreMap0[0][x][y] = maxDly;
+				else
+					scoreMap0[0][x][y] = dlyMap[x][y];
+				
+				BW[0][x][y] = !BW[0][x][y];
+			}
+		}
+		boolean[][][] BW2 = Helper.erode(BW, shifts);
+		
+		for (int x = 0; x < H; x++) {
+			for (int y = 0; y < W; y++) {
+				if (BW[0][x][y])
+					scoreMap0[0][x][y] = maxDly + 100;
+				if (BW2[0][x][y])
+					scoreMap0[0][x][y] = 0;
+				BW2[0][x][y] |= seedMap[x][y] > 0;
+			}
+		}
+		
+		scoreMap0 = Helper.imimposemin(scoreMap0, BW2);
+		
+//		Helper.viewMatrix(1, 20, 20, null, scoreMap0);
+		
+		int[][][] MapOut3D = Helper.watershed(scoreMap0);
+		int[][] MapOut = new int[H][W];
+		
+		// update
+		for (int x = 0; x < H; x++) {
+			for (int y = 0; y < W; y++) {
+				MapOut[x][y] = MapOut3D[0][x][y];
+				if (BW[0][x][y])
+					MapOut[x][y] = 0;
+			}
+		}
+		HashMap<Integer, ArrayList<int[]>> waterLst = Helper.label2idx(MapOut);
+		int seedLabel;
+		for (Map.Entry<Integer, ArrayList<int[]>> entry : waterLst.entrySet()) {
+			pix = entry.getValue();
+			seedLabel = 0;
+			for (int pId = 0; pId < pix.size(); pId++) {
+				p = pix.get(pId);
+				if (seedMap[p[0]][p[1]] > 0) {
+					seedLabel = seedMap[p[0]][p[1]];
+					break;
+				}
+			}
+			if (seedLabel == 0)
+				continue;
+			for (int pId = 0; pId < pix.size(); pId++) {
+				p = pix.get(pId);
+				seedMap[p[0]][p[1]] = seedLabel;
+			}
+		}
 		
 		// fill the gap
 		ArrayList<int[]> newPix;
 		pix = new ArrayList<int[]>();
-		for (int x = 0; x < H; x++) {
-			for (int y = 0; y < W; y++) {
-				if ((int) MapOut[x][y] == 0 && mask0[x][y] > 0) {
-					pix.add(new int[] {x, y});
-				}		
-			}
+		for (int pId = 0; pId < ihw.size(); pId++) {
+			p = ihw.get(pId);
+			if (seedMap[p[0]][p[1]] == 0)
+				pix.add(p);
 		}
+		
 		boolean[] labeled;
 		while (pix.size() > 0) {
 			labeled = new boolean[pix.size()];
@@ -974,6 +1042,7 @@ public class Step4Helper {
 				cx[k][t + alignedPeak2] = curve[t];
 			}			
 		}
+		
 
 		return new SpgtwRes(dlyMaps, cx, tempRatio, minTs, spLst);
 	}

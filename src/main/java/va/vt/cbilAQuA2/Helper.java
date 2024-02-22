@@ -9,6 +9,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.Stack;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.IntStream;
 import java.io.BufferedReader;
 import java.io.File;
@@ -25,9 +26,13 @@ import java.lang.reflect.Field;
 
 import ij.ImagePlus;
 import ij.ImageStack;
+import ij.Prefs;
 import ij.process.BinaryProcessor;
 import ij.process.FloatProcessor;
 import ij.process.ImageProcessor;
+import ij.util.ThreadUtil;
+import inra.ijpb.morphology.Reconstruction3D;
+import inra.ijpb.watershed.WatershedTransform3D;
 import va.vt.cbilAQuA2.run.Step3MajorityResult;
 
 import org.apache.commons.math3.distribution.NormalDistribution;
@@ -355,6 +360,43 @@ public class Helper {
         System.out.printf("\n\n");
     }       
  }
+  
+  public static void viewMatrix(int H, int W, int P, String name, boolean[][][] m) {    
+	    System.out.println("check " + name);
+	    
+	    int testP, testW, testH;
+	    testP = P;
+	    testW = W;
+	    testH = H;
+	    for(int k=0;k<testP;k++) {
+	        for(int i=0;i<testH;i++){
+	            for(int j=0;j<testW;j++){
+	            	if (m[i][j][k])
+	            		System.out.printf("1 ");
+	            	else
+	            		System.out.printf("0 ");
+	            }
+	            System.out.printf("\n");
+	        }
+	        System.out.printf("\n\n");
+	    }       
+	 }
+  
+  public static void boolean3DArrayFill(boolean[][][] BW) {
+	  int H = BW.length;
+	  int W = BW[0].length;
+	  int T = BW[0][0].length;
+	  
+	  for (int x = 0; x < H; x++) {
+		  for(int y = 0; y < W; y++) {
+			  for (int t = 0; t < T; t++) {
+				  BW[x][y][t] = true;
+			  }
+		  }
+	  }
+	  
+	  return;
+  }
 
   public static void saveMatrix(String proPath, String name, float[][][] dat) {
       String full = proPath + name;
@@ -473,6 +515,26 @@ public class Helper {
       // Create an ImagePlus from the ImageStack
       ImagePlus imp = new ImagePlus("3D Image", stack);
       return imp;
+  }
+  
+  public static ImageStack convertToImgStk(float[][][] dat) {
+	  int H = dat.length;
+      int W = dat[0].length;
+      int T = dat[0][0].length;
+
+      // Create an empty ImageStack
+      ImageStack stack = new ImageStack(H, W);
+
+      // Fill the ImageStack with slices
+      for (int z = 0; z < T; z++) {
+          // Fill pixels array with your data here
+          float[][] array = getSlice(dat,z);
+          ImageProcessor ip = new FloatProcessor(array);
+          stack.addSlice(ip);
+      }
+
+      // Create an ImagePlus from the ImageStack
+      return stack;
   }
   
   public static ImagePlus convertToImgPlus(float[][] dat) {
@@ -1759,6 +1821,244 @@ public class Helper {
 	    return resizedMatrix;
 	}
 	
+	public static int[][][] refineWaterShed(int[][][] map){
+		int H = map.length;
+		int W = map[0].length;
+		int T = map[0][0].length;
+		int[][] dirs = dirGenerate(26);
+		int x0, y0, z0;
+		for (int x = 0; x < H; x++) {
+			for (int y = 0; y < W; y++) {
+				for (int z = 0; z < T; z++) {
+					if (map[x][y][z] == 0) {
+						int nLabel = 0;
+						for (int k = 0; k < 26; k++) {
+							x0 = x + dirs[k][0];
+							y0 = y + dirs[k][1];
+							z0 = z + dirs[k][2];
+							if (x0 >= 0 && x0 < H && y0 >= 0 && y0 < W && z0 >= 0 && z0 < T && map[x0][y0][z0] > 0) {
+								 if (nLabel == 0)
+									 nLabel = map[x0][y0][z0];
+								 else if(nLabel != map[x0][y0][z0]){
+									 nLabel = -1;
+									 break;
+								 }	
+							}
+						}
+						if (nLabel > 0) {
+							map[x][y][z] = nLabel;
+//							System.out.println("Used");
+						}	
+					}
+				}
+			}
+		}
+		
+		return map;
+	}
+	
+	 public static int[][] convertMaskToShifts(boolean[][][] mask) {
+        // retrieve mask size
+        int sizeZ = mask.length;
+        int sizeY = mask[0].length;
+        int sizeX = mask[0][0].length;
+        
+        // compute offsets, using automated rounding of division
+        int offsetX = (sizeX - 1) / 2;
+        int offsetY = (sizeY - 1) / 2;
+        int offsetZ = (sizeZ - 1) / 2;
+
+        // count the number of positive elements
+        int n = 0;
+        for (int z = 0; z < sizeZ; z++)
+        {
+            for (int y = 0; y < sizeY; y++)
+            {
+                for (int x = 0; x < sizeX; x++)
+                {
+                    if (mask[z][y][x])
+                        n++;
+                }
+            }
+        }
+
+        // allocate result
+        int[][] offsets = new int[n][3];
+        
+        // fill up result array with positive elements
+        int i = 0;
+        for (int z = 0; z < sizeZ; z++)
+        {
+            for (int y = 0; y < sizeY; y++)
+            {
+                for (int x = 0; x < sizeX; x++)
+                {
+                    if (mask[z][y][x])
+                    {
+                        offsets[i][0] = x - offsetX;
+                        offsets[i][1] = y - offsetY;
+                        offsets[i][2] = z - offsetZ;
+                        i++;
+                    }
+                }
+            }
+        }
+        return offsets;
+    }
+	 
+	 public static int[][] convertMaskToShifts(boolean[][] mask) {
+	        // retrieve mask size
+	        int sizeZ = mask.length;
+	        int sizeY = mask[0].length;
+	        
+	        // compute offsets, using automated rounding of division
+	        int offsetY = (sizeY - 1) / 2;
+	        int offsetZ = (sizeZ - 1) / 2;
+
+	        // count the number of positive elements
+	        int n = 0;
+	        for (int z = 0; z < sizeZ; z++)
+	        {
+	            for (int y = 0; y < sizeY; y++)
+	            {
+                    if (mask[z][y])
+                        n++;
+	            }
+	        }
+
+	        // allocate result
+	        int[][] offsets = new int[n][2];
+	        
+	        // fill up result array with positive elements
+	        int i = 0;
+	        for (int z = 0; z < sizeZ; z++)
+	        {
+	            for (int y = 0; y < sizeY; y++)
+	            {
+                    if (mask[z][y])
+                    {
+                        offsets[i][0] = y - offsetY;
+                        offsets[i][1] = z - offsetZ;
+                        i++;
+                    }
+	            }
+	        }
+	        return offsets;
+	    }
+	 
+	public static boolean[][][] erodeSlow(boolean[][][] mask, int[][] offsets){
+		int H = mask.length;
+		int W = mask[0].length;
+		int T = mask[0][0].length;
+		boolean[][][] res = new boolean[H][W][T];
+		
+		int n_cpus = Prefs.getThreads();
+		System.out.println("nCFU: " + n_cpus);
+		int cnt = 0;
+		int cntPos = 0;
+		int x0, y0, z0;
+		for (int x = 0; x < H; x++) {
+			for (int y = 0; y < W; y++) {
+				for (int z = 0; z < T; z++) {
+					if (mask[x][y][z]) {
+						cnt += 1;
+						boolean setFalse = false;
+//						System.out.println(x + " " + y + " " + z);
+						for (int k = 0; k < offsets.length; k++) {
+							x0 = x + offsets[k][0];
+							y0 = y + offsets[k][1];
+							z0 = z + offsets[k][2];
+							if (x0 < 0 || x0 >= H || y0 < 0 || y0 >= W || z0 < 0 || z0 >= T)
+								continue;
+							if (mask[x0][y0][z0] == false) {
+								setFalse = true;
+								break;
+							}
+						}
+						if (setFalse)
+							res[x][y][z] = false;
+						else {
+							res[x][y][z] = true;
+							cntPos += 1;
+						}
+					}
+				}
+			}
+		}
+		System.out.println(" cnt: " + cnt + " cntPos: " + cntPos);
+		return res;
+	}
+	
+	public static boolean[][][] erode(boolean[][][] mask, int[][] offsets){
+		int H = mask.length;
+		int W = mask[0].length;
+		int T = mask[0][0].length;
+		boolean[][][] res = new boolean[H][W][T];
+		
+		final AtomicInteger ai = new AtomicInteger(0);
+		final int n_cpus = Prefs.getThreads();
+		ArrayList<int[]> pointsLst = new ArrayList<>();
+		for (int x = 0; x < H; x++) {
+			for (int y = 0; y < W; y++) {
+				for (int z = 0; z < T; z++) {
+					if (mask[x][y][z])
+						pointsLst.add(new int[] {x, y, z});
+				}
+			}
+		}
+//		System.out.println("Erosion start");
+		
+		final int nPix = pointsLst.size();
+//		System.out.println("nCFU: " + n_cpus + " nPix " + nPix);
+		final int dec = (int) Math.ceil((double) nPix / (double) n_cpus);
+		boolean[] setFalses = new boolean[nPix];
+		
+		Thread[] threads = ThreadUtil.createThreadArray( n_cpus );
+		for (int iThread = 0; iThread < threads.length; iThread++) {
+			threads[iThread] = new Thread() {
+				public void run() {
+					for (int iTh = ai.getAndIncrement(); iTh < n_cpus; iTh = ai.getAndIncrement()) {
+						int idMin = dec * iTh;
+						int idMax = idMin + dec;
+						if (idMax > nPix)
+							idMax = nPix;
+						for (int i = idMin; i < idMax; i++) {
+							final int x = pointsLst.get(i)[0];
+							final int y = pointsLst.get(i)[1];
+							final int z = pointsLst.get(i)[2];
+							boolean setFalse = false;
+							for (int k = 0; k < offsets.length; k++) {
+								final int x0 = x + offsets[k][0];
+								final int y0 = y + offsets[k][1];
+								final int z0 = z + offsets[k][2];
+								if (x0 < 0 || x0 >= H || y0 < 0 || y0 >= W || z0 < 0 || z0 >= T)
+									continue;
+								if (mask[x0][y0][z0] == false) {
+									setFalse = true;
+									break;
+								}
+							}
+							setFalses[i] = setFalse;
+						}
+					}
+				}
+			};
+		}
+		ThreadUtil.startAndJoin(threads);
+		int[] p;
+		int cntPos = 0;
+		for (int i = 0; i < nPix; i++) {
+			p =  pointsLst.get(i);
+			res[p[0]][p[1]][p[2]] = !setFalses[i];
+			if (res[p[0]][p[1]][p[2]])
+				cntPos += 1;
+		}
+		
+//		System.out.println("Erosion done cntPos " + cntPos);
+		return res;
+	}
+	
+	
 	public static boolean[][] imResize(boolean[][] dat, int scale) {
 	    // Determine the new dimensions of the resized matrix
 	    int H = dat.length;
@@ -2311,6 +2611,83 @@ public class Helper {
 		return res;
 	}
 	
+	public static int[][][] convertImgPlusToIntArray(ImagePlus img) {
+		int dim1 = img.getWidth();
+		int dim2 = img.getHeight();
+		int dim3 = img.getImageStackSize();
+		int[][][] res = new int[dim1][dim2][dim3];
+		for (int z = 0; z < dim3; z++) {
+			img.setPosition(z + 1);
+			float[][] tmp = img.getProcessor().getFloatArray();
+			setSlice(res, tmp, z);
+		}
+		return res;
+	}
+	
+	public static float[][][] convertImgPlusToArray(ImageStack img) {
+		int dim1 = img.getWidth();
+		int dim2 = img.getHeight();
+		int dim3 = img.getSize();
+		float[][][] res = new float[dim1][dim2][dim3];
+		for (int z = 0; z < dim3; z++) {
+			for (int x = 0; x < dim1; x++) {
+				for (int y = 0; y < dim2; y++) {
+					res[x][y][z] = (float) img.getVoxel(x, y, z);
+				}
+			}
+		}
+		return res;
+	}
+	
+	public static float[][][] imimposemin(float[][][] I, boolean[][][] BW){
+		int dim1 = I.length;
+		int dim2 = I[0].length;
+		int dim3 = I[0][0].length;
+		
+		float[][][] fm = new float[dim1][dim2][dim3];
+		float maxV = Float.NEGATIVE_INFINITY;
+		float minV = Float.POSITIVE_INFINITY;
+		for (int x = 0; x < dim1; x++) {
+			for (int y = 0; y < dim2; y++) {
+				for (int z = 0; z < dim3; z++) {
+					if (BW[x][y][z])
+						fm[x][y][z] = Float.NEGATIVE_INFINITY;
+					else
+						fm[x][y][z] = Float.POSITIVE_INFINITY;
+					maxV = Math.max(maxV, I[x][y][z]);
+					minV = Math.min(minV, I[x][y][z]);
+				}
+			}
+		}
+		
+		float h = 1;
+		if (maxV == minV)
+			h = 0.1f;
+		else
+			h = 0.001f * (maxV - minV);
+		
+		float[][][] mask = new float[dim1][dim2][dim3];
+		for (int x = 0; x < dim1; x++) {
+			for (int y = 0; y < dim2; y++) {
+				for (int z = 0; z < dim3; z++) {
+					mask[x][y][z] = 1 - Math.min(I[x][y][z] + h, fm[x][y][z]);
+					fm[x][y][z] = - fm[x][y][z];
+				}
+			}
+		}
+		
+		float[][][] res = Helper.convertImgPlusToArray(Reconstruction3D.reconstructByDilation(Helper.convertToImgStk(fm),Helper. convertToImgStk(mask), 26));
+		for (int x = 0; x < dim1; x++) {
+			for (int y = 0; y < dim2; y++) {
+				for (int z = 0; z < dim3; z++) {
+					res[x][y][z] = 1 - res[x][y][z];
+				}
+			}
+		}
+		return res;
+		
+	}
+	
 	public static int[][] dirGenerate(int conn) {
 		int [][] dirs = null;
 		int cnt = 0;
@@ -2443,6 +2820,22 @@ public class Helper {
 		for (int pId = 0; pId < pix.size(); pId++) {
 			p = pix.get(pId);
 			Map[p[0]][p[1]][p[2]] = curLabel;
+		}
+	}
+	
+	public static void setValue(boolean[][][] Map, ArrayList<int[]> pix) {
+		int[] p;
+		for (int pId = 0; pId < pix.size(); pId++) {
+			p = pix.get(pId);
+			Map[p[0]][p[1]][p[2]] = true;
+		}
+	}
+	
+	public static void setValue(boolean[][] Map, ArrayList<int[]> pix) {
+		int[] p;
+		for (int pId = 0; pId < pix.size(); pId++) {
+			p = pix.get(pId);
+			Map[p[0]][p[1]] = true;
 		}
 	}
 	
@@ -2817,6 +3210,30 @@ public class Helper {
 	    } else {
 	    	return "";
 	    }
+	}
+
+	public static int[][][] watershed(float[][][] scoreMap) {
+		int H = scoreMap.length;
+		int W = scoreMap[0].length;
+		int T = scoreMap[0][0].length;
+		
+		int[][][] mask0 = new int[H][W][T];
+		for (int x = 0; x < H; x++) {
+			for (int y = 0; y < W; y++) {
+				for (int z = 0; z < T; z++) {
+					mask0[x][y][z] = 1;
+				}
+			}
+		}
+		ImagePlus input = Helper.convertToImgPlus(scoreMap);
+		ImagePlus mask = Helper.convertToImgPlus(mask0);
+		WatershedTransform3D watershed = new WatershedTransform3D (input, mask, 26);
+		ImagePlus result = watershed.apply();
+		int[][][] MapOut = Helper.convertImgPlusToIntArray(result);
+		MapOut = Helper.refineWaterShed(MapOut);
+		
+		// TODO Auto-generated method stub
+		return MapOut;
 	}
 	
 	

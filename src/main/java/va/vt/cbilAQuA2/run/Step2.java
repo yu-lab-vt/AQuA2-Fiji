@@ -163,6 +163,8 @@ public class Step2 extends SwingWorker<int[][][], Integer> {
 		int[] p;
 		int minT, maxT;
 		
+//		Helper.viewMatrix(10, 10, 2, "dF", dF);
+		
 		if (ch==1) {
 			maxdF = opts.maxdF1;
 		} else if (ch==2) {

@@ -564,12 +564,22 @@ public class Step3Helper {
 //		Helper.viewMatrix(10, 10,  1, "", scoreMap);
 		
 		int[][][] Map = new int[H][W][T];
-		ArrayList<int[]> pix, pix1, newPix;
+		boolean[][][] BW, BW2;
+		ArrayList<int[]> pix, pix1, newPix, curPix;
 		int[] p;
 		for (int i = 1; i <= evtLst.size(); i++) {
 			pix = evtLst.get(i);
 			Helper.setValue(Map, pix, i);
 		}
+		boolean[][][] SE = new boolean[8][8][8];
+		for (int x = 0; x < 8; x ++) {
+			for (int y = 0; y < 8; y ++) {
+				for (int z = 0; z < 8; z ++) {
+					SE[x][y][z] = true;
+				}
+			}
+		}
+		int[][] shifts = Helper.convertMaskToShifts(SE);
 		
 		int[][] dirs = Helper.dirGenerate(26);
 		HashMap<Integer, float[]> mus = new HashMap<Integer, float[]>();
@@ -589,12 +599,14 @@ public class Step3Helper {
 		// update
 		int t00, t11, t0, t1, t_scl, x0, x1, y0, y1, H0, W0, T0, xx, yy, zz, curLabel;
 		int ext = 1;
-		int[][][] Map0, Mask0;
-		float[][][] scoreMap0, MapOut;
-		HashSet<Integer> ihw, neib0;
+		int[][][] Map0, MapOut;
+		float[][][] scoreMap0;
+		HashSet<Integer> ihw, neib0, hashPix;
 		float[] evtCurve, curve0;
 		boolean hasPeak;
-		boolean[] labeled;
+		float maxScore;
+		boolean[] labeled, checked;
+		HashMap<Integer, ArrayList<int[]>> waterLst;
 		for (int i = 1; i <= evtLst.size(); i++) {
 			t00 = T; t11 = 0;
 			pix = sdLst.get(i);
@@ -673,42 +685,83 @@ public class Step3Helper {
 			T0 = t1 - t0 + 1;
 			
 			Map0 = new int[H0][W0][T0];
-			Mask0 = new int[H0][W0][T0];
 			scoreMap0 = new float[H0][W0][T0];
+			BW = new boolean[H0][W0][T0];
+			maxScore = Float.NEGATIVE_INFINITY;
 			for (int x = x0; x <= x1; x++) {
 				for (int y = y0; y <= y1; y++) {
 					for (int z = t0; z <= t1; z++) {
 						scoreMap0[x - x0][y - y0][z - t0] = scoreMap[x][y][z];
+						maxScore = Math.max(maxScore, scoreMap[x][y][z]);
 						curLabel = Map[x][y][z];
-						if (neib0.contains(curLabel)) {
+						if (curLabel == i || neib0.contains(curLabel)) {
 							Map0[x - x0][y - y0][z - t0] = curLabel;
-							Mask0[x - x0][y - y0][z - t0] = 1;
 						}
-						if (curLabel == i)
-							Mask0[x - x0][y - y0][z - t0] = 1;			
+						if (Map0[x - x0][y - y0][z - t0] == 0)
+							BW[x - x0][y - y0][z - t0] = true;
 					}
 				}
 			}
 			
-			// here no need to separate region since watershed algorithm is different 
-			// marker controlled watershed
-			ImagePlus input = Helper.convertToImgPlus(scoreMap0);
-			ImagePlus marker = Helper.convertToImgPlus(Map0);
-			ImagePlus mask = Helper.convertToImgPlus(Mask0);
-			MarkerControlledWatershedTransform3D watershed = new MarkerControlledWatershedTransform3D (input, marker, mask, 26);
-			ImagePlus result = watershed.applyWithSortedListAndDams();
-			MapOut = Helper.convertImgPlusToArray(result);
+			hashPix = new HashSet<>();
+			for (int pId = 0; pId < pix.size(); pId++) {
+				p = pix.get(pId);
+				Map0[p[0] - x0][p[1] - y0][p[2] - t0] = 0;
+				Map[p[0]][p[1]][p[2]] = 0;
+				hashPix.add(Helper.sub2ind(H0, W0, T0, p[0] - x0, p[1] - y0, p[2] - t0));
+			}
 			
-			// fill the gap
+			// separate regions to avoid connected seeds
 			pix1 = new ArrayList<int[]>();
 			for (int x = 0; x < H0; x++) {
 				for (int y = 0; y < W0; y++) {
 					for (int z = 0; z < T0; z++) {
-						if ((int) MapOut[x][y][z] == 0 && Mask0[x][y][z] > 0) {
+						if (Map0[x][y][z] > 0) {
 							pix1.add(new int[] {x, y, z});
 						}		
 					}
 				}
+			}
+			checked = new boolean[pix1.size()];
+			for (int k = 0; k < dirs.length; k++) {
+				for (int pId = 0; pId < pix1.size(); pId++) {
+					if (checked[pId])
+						continue;
+					p = pix1.get(pId);
+					xx = Math.max(Math.min(H0 - 1, p[0] + dirs[k][0]), 0);
+					yy = Math.max(Math.min(W0 - 1, p[1] + dirs[k][1]), 0);
+					zz = Math.max(Math.min(T0 - 1, p[2] + dirs[k][2]), 0);
+					if (Map0[xx][yy][zz] > 0 && Map0[xx][yy][zz] != Map0[p[0]][p[1]][p[2]]) {
+						Map0[p[0]][p[1]][p[2]] = 0;
+						checked[pId] = true;
+					}
+				}
+			}
+			
+			BW2 = Helper.erode(BW, shifts);
+			for (int x = 0; x < H0; x++) {
+				for (int y = 0; y < W0; y++) {
+					for (int z = 0; z < T0; z++) {
+						if (BW[x][y][z]) {
+							scoreMap0[x][y][z] = maxScore + 1;
+						}		
+						if (BW2[x][y][z]) {
+							scoreMap0[x][y][z] = -100;
+						}
+						BW2[x][y][z] |= Map0[x][y][z] > 0;
+					}
+				}
+			}
+			scoreMap0 = Helper.imimposemin(scoreMap0, BW2);
+			// marker controlled watershed
+			MapOut = Helper.watershed(scoreMap0);
+
+			// fill the gap
+			pix1 = new ArrayList<int[]>();
+			for (int pId = 0; pId < pix.size(); pId++) {
+				p = pix.get(pId);
+				if (MapOut[p[0] - x0][p[1] - y0][p[2] - t0] == 0)
+					pix1.add(new int[] {p[0] - x0, p[1] - y0, p[2] - t0});
 			}
 			
 			while (pix1.size() > 0) {
@@ -737,13 +790,50 @@ public class Step3Helper {
 			}			
 			
 			// update
-			for (int pId = 0; pId < pix.size(); pId++) {
-				p = pix.get(pId);
-				curLabel = (int) MapOut[p[0] - x0][p[1] - y0][p[2] - t0];
-				evtLst.get(curLabel).add(p);
-				Map[p[0]][p[1]][p[2]] = curLabel;
-				majorUpdate.add(curLabel);
+			for (int x = 0; x < H0; x++) {
+				for (int y = 0; y < W0; y++) {
+					for (int z = 0; z < T0; z++) {
+						if (BW[x][y][z]) {
+							MapOut[x][y][z] = 0;
+						}		
+					}
+				}
 			}
+			waterLst = Helper.label2idx(MapOut);
+			for (Map.Entry<Integer, ArrayList<int[]>> entry:waterLst.entrySet()) {
+				curPix = entry.getValue();
+				curLabel = 0;
+				for (int pId = 0; pId < curPix.size(); pId ++) {
+					p = curPix.get(pId);
+					if (Map0[p[0]][p[1]][p[2]] != 0) {
+						curLabel = Map0[p[0]][p[1]][p[2]];
+						break;
+					}
+				}
+				if (curLabel == 0)
+					continue;
+				newPix = new ArrayList<>();
+				for (int pId = 0; pId < curPix.size(); pId ++) {
+					p = curPix.get(pId);
+					if (hashPix.contains(Helper.sub2ind(H0, W0, T0, p[0], p[1], p[2]))) {
+						newPix.add(p);
+					}
+				}
+				curPix = newPix;
+				if (curPix.size() == 0)
+					continue;
+				for (int pId = 0; pId < curPix.size(); pId ++) {
+					p = curPix.get(pId);
+					xx = p[0] + x0;
+					yy = p[1] + y0;
+					zz = p[2] + t0;
+					evtLst.get(curLabel).add(new int[] {xx, yy, zz});
+					Map[xx][yy][zz] = curLabel;
+				}
+				majorUpdate.add(curLabel);
+				
+			}
+			
 		}
 		
 		// update majority
@@ -1053,7 +1143,7 @@ public class Step3Helper {
 		
 		return tw;
 	}
-
+	
 	public static HashMap<Integer, ArrayList<int[]>> markerControlledSplitting_Ac(int[][][] Map,
 			HashMap<Integer, ArrayList<int[]>> sdLst, HashMap<Integer, ArrayList<int[]>> curRegions, float[][][] dF,
 			Opts opts) {
@@ -1061,6 +1151,16 @@ public class Step3Helper {
 		int W = dF[0].length;
 		int T = dF[0][0].length;
 		opts.spaSmo = 3;
+		
+		boolean[][][] SE = new boolean[8][8][8];
+		for (int x = 0; x < 8; x ++) {
+			for (int y = 0; y < 8; y ++) {
+				for (int z = 0; z < 8; z ++) {
+					SE[x][y][z] = true;
+				}
+			}
+		}
+		int[][] shifts = Helper.convertMaskToShifts(SE);
 		
 		float[][][] scoreMap = new float[H][W][T];
 		for (int tt = 0; tt < T; tt++) {
@@ -1098,10 +1198,14 @@ public class Step3Helper {
 		
 		// watershed
 		int x0, x1, y0, y1, t0, t1;
-		int H0, W0, T0;
-		int[][][] Map0;
-		int[][][] Mask0;
-		float[][][] scoreMap0, MapOut;
+		int H0, W0, T0, label, id;
+		int[][][] Map0, MapOut;
+		boolean[][][] BW, BW2, BW00;
+		float[][][] scoreMap0;
+		HashMap<Integer, ArrayList<int[]>> waterLst, cc;
+		HashMap<Integer, Integer> labelMapping;
+		ArrayList<int[]> curPix;
+		float maxScore;
 		for (int i = 1; i <= curRegions.size(); i++) {
 			labels = seedsInRegion.get(i);
 			if (labels.size() > 1) {
@@ -1123,34 +1227,117 @@ public class Step3Helper {
 				
 				// input of watershed algorithm
 				Map0 = new int[H0][W0][T0];
-				Mask0 = new int[H0][W0][T0];
+				BW = new boolean[H0][W0][T0];
+				Helper.boolean3DArrayFill(BW);
 				scoreMap0 = new float[H0][W0][T0];
+				maxScore = Float.NEGATIVE_INFINITY;
 				for (int pId = 0; pId < pix.size(); pId++) {
 					p = pix.get(pId);
-					Mask0[p[0] - x0][p[1] - y0][p[2] - t0] = 1;
+					BW[p[0] - x0][p[1] - y0][p[2] - t0] = false;
 					Map0[p[0] - x0][p[1] - y0][p[2] - t0] = Map[p[0]][p[1]][p[2]];
 					scoreMap0[p[0] - x0][p[1] - y0][p[2] - t0] = scoreMap[p[0]][p[1]][p[2]];
+					maxScore = Math.max(maxScore, scoreMap[p[0]][p[1]][p[2]]);
 				}
 				
-//				Helper.viewMatrix(100, 100, 1, "scoreMap0", scoreMap0);
+				BW2 = Helper.erode(BW, shifts);
+//				boolean[][][] BW33 = Helper.erodeSlow(BW, shifts);
+//				int cnt = 0;
+//				for (int x = 0; x < H0; x++) {
+//					for (int y = 0; y < W0; y++) {
+//						for (int t = 0; t < T0; t++) {
+//							if (BW2[x][y][t] == BW33[x][y][t])
+//								cnt += 1;
+//						}
+//					}
+//				}
+//				if (cnt == H0 * W0 * T0) {
+//					System.out.println("Pass Check Erode");
+//				}else {
+//					System.out.println("Not Pass Check Erode" + cnt);
+//				}
 				
-				// marker controlled watershed
-				ImagePlus input = Helper.convertToImgPlus(scoreMap0);
-				ImagePlus marker = Helper.convertToImgPlus(Map0);
-				ImagePlus mask = Helper.convertToImgPlus(Mask0);
 				
-				System.out.println("Watershed class");
-				MarkerControlledWatershedTransform3D watershed = new MarkerControlledWatershedTransform3D (input, marker, mask, 26);
-				System.out.println("Watershed return");
-				ImagePlus result = watershed.applyWithSortedListAndDams();
-				System.out.println("Watershed done");
-				MapOut = Helper.convertImgPlusToArray(result);
-				
-				// assign label back
-				for (int pId = 0; pId < pix.size(); pId++) {
-					p = pix.get(pId);
-					Map[p[0]][p[1]][p[2]] = (int) MapOut[p[0] - x0][p[1] - y0][p[2] - t0];
+				for (int x = 0; x < H0; x++) {
+					for (int y = 0; y < W0; y++) {
+						for (int t = 0; t < T0; t++) {
+							if (BW[x][y][t])
+								scoreMap0[x][y][t] = maxScore + 1;
+							if (BW2[x][y][t])
+								scoreMap0[x][y][t] = -100;
+						}
+					}
 				}
+				
+				// BW2 | Map0>0
+				for (int x = 0; x < H0; x++) {
+					for (int y = 0; y < W0; y++) {
+						for (int t = 0; t < T0; t++) {
+							BW2[x][y][t] |= Map0[x][y][t] > 0;
+						}
+					}
+				}				
+				scoreMap0 = Helper.imimposemin(scoreMap0, BW2);
+//				Helper.viewMatrix(10, 10, 1, null, scoreMap0);
+				// watershed
+				MapOut = Helper.watershed(scoreMap0);
+				// update
+				for (int x = 0; x < H0; x++) {
+					for (int y = 0; y < W0; y++) {
+						for (int t = 0; t < T0; t++) {
+							if (BW[x][y][t])
+								MapOut[x][y][t] = 0;
+						}
+					}
+				}
+				waterLst = Helper.label2idx(MapOut);
+				
+				for (Map.Entry<Integer, ArrayList<int[]>> entryWaterShed : waterLst.entrySet()) {
+					curPix = entryWaterShed.getValue();
+					if (curPix == null)
+						continue;
+					label = 0;
+					for (int[] p0 : curPix) {
+						label = Map0[p0[0]][p0[1]][p0[2]];
+						if (label != 0)
+							break;
+					}
+					if (label == 0)
+						continue;
+					// find the largest connected component
+					BW00 = new boolean[H0][W0][T0];
+					Helper.setValue(BW00, curPix);
+					cc = new HashMap<>();
+					Helper.bfsConn3D(BW00, cc);
+					for (Map.Entry<Integer, ArrayList<int[]>> entry : cc.entrySet()) {
+						if (entry.getValue().size() < sdLst.get(label).size())
+							continue;
+						boolean find = false;
+						for (int[] p0 : entry.getValue()) {
+							if (Map0[p0[0]][p0[1]][p0[2]] > 0) {
+								find = true;
+								break;
+							}
+						}
+						if (find) {
+							curPix = entry.getValue();
+							break;
+						}
+					}
+					
+					// update
+					for (int[] p0 : curPix) {
+						Map[p0[0] + x0][p0[1] + y0][p0[2] + t0] = label;
+					}
+			
+				}
+				
+				
+//				
+//				// assign label back
+//				for (int pId = 0; pId < pix.size(); pId++) {
+//					p = pix.get(pId);
+//					Map[p[0]][p[1]][p[2]] = (int) MapOut[p[0] - x0][p[1] - y0][p[2] - t0];
+//				}
 			}
 		}
 		
@@ -1920,6 +2107,7 @@ public class Step3Helper {
 
 	public static float getScoreNonCentral(double l_left, int nu, double mus_Left) {
 //		mus_Left = 0;
+//		System.out.println(l_left + " " +  nu + " " + mus_Left);
 		NonCentralT nctcdf = new NonCentralT(nu, (float)mus_Left);
 		double p = nctcdf.cumulative((float)l_left, false, false);
 		NormalDistribution dist = new NormalDistribution(0, 1);

@@ -127,6 +127,7 @@ public class Step1 extends SwingWorker<int[][][], Integer>{
         opts.cut = Math.min(opts.cut, T);
         startTime = System.currentTimeMillis();
         F0 = Step1Helper.baselineLinearEstimate(datSmo, opts.cut, opts.movAvgWin);
+//        Helper.viewMatrix(10, 10, 1, "F0", F0);
         stopTime = System.currentTimeMillis();
         elapsedTime = stopTime - startTime;
         System.out.println("Elapsed time: " + elapsedTime + "ms");      
@@ -154,6 +155,12 @@ public class Step1 extends SwingWorker<int[][][], Integer>{
         stopTime = System.currentTimeMillis();
         elapsedTime = stopTime - startTime;
         System.out.println("Elapsed time: " + elapsedTime + "ms");
+        
+//        
+//      Helper.viewMatrix(10, 10, "stdMapOrg", stdMapOrg);
+//      Helper.viewMatrix(10, 10, "stdMapSmo", stdMapSmo);
+//      Helper.viewMatrix(10, 10, "tempVarOrg", tempVarOrg);
+//      Helper.viewMatrix(10, 10, "correctPars", correctPars); 
         
         // correct bias during noise estimation. Bias does not impact noise
         
