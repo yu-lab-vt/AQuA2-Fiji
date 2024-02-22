@@ -15,9 +15,7 @@ For details, please visit [the main repository](https://github.com/yu-lab-vt/AQu
 In Fiji menu, select "Plugins -> AQuA2". Then everything would be similar to MATLAB GUI of AQuA2.
 For GUI instructions, please visit [the main repository](https://github.com/yu-lab-vt/AQuA2).
 
-# TODO Note:
-
-* Since the watershed packages in MATLAB and Fiji have some differences, the results may differ a little bit. Will unify these algorithms later.
-
 # Update:
+* 2024-02-22: Synchronize the watershed function in both MATLAB and Fiji versions. Now thte results of two versions are the same.
+
 * 2024-01-18: Update files for Linux and Mac systems.
