@@ -148,64 +148,81 @@ public class Step3 extends SwingWorker<int[][][], Integer> {
 		int[][][] Map = new int[H][W][T]; 
 		int[] seLstInfoLabel;
 		HashMap<Integer, ArrayList<int[]>> sdLst, curRegions, evtLst, seLst;
-        
-		// seed detection
-		publish(2);
-        System.out.println("Seed detection");
-        start = System.currentTimeMillis();
-        curRegions = Step3Helper.seedDetect2DSAccelerate(Helper.copy3Darray(dF), datOrg, Map, arLst, opts);
-        sdLst = Helper.label2idx(Map);
-        
-        showTime();
-        
-        // marker controlled watershed
-        publish(3);
-        System.out.println("Watershed grow");
-        curRegions = Step3Helper.markerControlledSplitting_Ac(Map, sdLst, curRegions, dF, opts);
-        
-//        // load from matlab result -- to be deleted
-//        Map = Helper.loadMatlabStep2Result();       
-        
-        evtLst = Helper.label2idx(Map);
-        
-        // remove empty
-        boolean[] nonEmpty = new boolean[evtLst.size()];
-        for (int i = 1; i <= evtLst.size(); i++) {
-        	nonEmpty[i - 1] = evtLst.get(i).size() > 0;
-        }
-        sdLst = Helper.filterWithMask(sdLst, nonEmpty);
-        evtLst = Helper.filterWithMask(evtLst, nonEmpty);
-        
-        publish(4);
-        // select major part
-        System.out.println("Select majority part");
-        HashMap<Integer, Step3MajorityResult> majorityEvt0 = Step3Helper.getMajority_Ac(sdLst, evtLst, dF, opts);
-        
-        
-        // according to curve, refine
-        System.out.println("Refining");
-        boolean[] isGood = Step3Helper.majorCurveFilter2(datOrg, dF, sdLst, evtLst, majorityEvt0, opts);
-        sdLst = Helper.filterWithMask(sdLst, isGood);
-        evtLst = Helper.filterWithMask(evtLst, isGood);
-        majorityEvt0 = Helper.filterWithMaskMajor(majorityEvt0, isGood);
-        
-        // merge to super event
-        System.out.println("Merging signals with similar temporal patterns");
-        Step3MergingInfo mergingInfo = Step3Helper.createMergingInfo(evtLst, majorityEvt0, curRegions, opts);
-        seLst = new HashMap<Integer, ArrayList<int[]>>();
-        seLstInfoLabel = Step3Helper.mergingSEbyInfo_UpdateSpa(evtLst, majorityEvt0, mergingInfo, curRegions, opts, seLst);
-        
-        // label to Map
-        Map = new int[H][W][T]; 
-        ArrayList<int[]> pix;
-        for (int i = 1; i <= seLst.size(); i++) {
-        	pix = seLst.get(i);
-        	Helper.setValue(Map, pix, i);
-        }
-        Step3HelperResult res = new Step3HelperResult(sdLst, evtLst, seLst, majorityEvt0, seLstInfoLabel, Map);
-        
-		end = System.currentTimeMillis();
-		System.out.println("Total time" + (end-start0) + "ms");
+		Step3HelperResult res;
+		
+		
+		if (opts.needTemp) {
+			// seed detection
+			publish(2);
+	        System.out.println("Seed detection");
+	        start = System.currentTimeMillis();
+	        curRegions = Step3Helper.seedDetect2DSAccelerate(Helper.copy3Darray(dF), datOrg, Map, arLst, opts);
+	        sdLst = Helper.label2idx(Map);
+	        
+	        showTime();
+	        
+	        // marker controlled watershed
+	        publish(3);
+	        System.out.println("Watershed grow");
+	        curRegions = Step3Helper.markerControlledSplitting_Ac(Map, sdLst, curRegions, dF, opts);
+	        
+//	        // load from matlab result -- to be deleted
+//	        Map = Helper.loadMatlabStep2Result();       
+	        
+	        evtLst = Helper.label2idx(Map);
+	        
+	        // remove empty
+	        boolean[] nonEmpty = new boolean[evtLst.size()];
+	        for (int i = 1; i <= evtLst.size(); i++) {
+	        	nonEmpty[i - 1] = evtLst.get(i).size() > 0;
+	        }
+	        sdLst = Helper.filterWithMask(sdLst, nonEmpty);
+	        evtLst = Helper.filterWithMask(evtLst, nonEmpty);
+	        
+	        publish(4);
+	        // select major part
+	        System.out.println("Select majority part");
+	        HashMap<Integer, Step3MajorityResult> majorityEvt0 = Step3Helper.getMajority_Ac(sdLst, evtLst, dF, opts);
+	        
+	        
+	        // according to curve, refine
+	        System.out.println("Refining");
+	        boolean[] isGood = Step3Helper.majorCurveFilter2(datOrg, dF, sdLst, evtLst, majorityEvt0, opts);
+	        sdLst = Helper.filterWithMask(sdLst, isGood);
+	        evtLst = Helper.filterWithMask(evtLst, isGood);
+	        majorityEvt0 = Helper.filterWithMaskMajor(majorityEvt0, isGood);
+	        
+	        // merge to super event
+	        System.out.println("Merging signals with similar temporal patterns");
+	        Step3MergingInfo mergingInfo = Step3Helper.createMergingInfo(evtLst, majorityEvt0, curRegions, opts);
+	        seLst = new HashMap<Integer, ArrayList<int[]>>();
+	        seLstInfoLabel = Step3Helper.mergingSEbyInfo_UpdateSpa(evtLst, majorityEvt0, mergingInfo, curRegions, opts, seLst);
+	        
+	        // label to Map
+	        Map = new int[H][W][T]; 
+	        ArrayList<int[]> pix;
+	        for (int i = 1; i <= seLst.size(); i++) {
+	        	pix = seLst.get(i);
+	        	Helper.setValue(Map, pix, i);
+	        }
+	        res = new Step3HelperResult(sdLst, evtLst, seLst, majorityEvt0, seLstInfoLabel, Map);
+	        
+			end = System.currentTimeMillis();
+			System.out.println("Total time" + (end-start0) + "ms");
+		}else {
+			HashMap<Integer, Step3MajorityResult> majorityEvt0 = Step3Helper.getMajority_Ac(arLst, arLst, dF, opts);
+			Map = new int[H][W][T]; 
+	        ArrayList<int[]> pix;
+	        seLstInfoLabel = new int[arLst.size() + 1];
+	        for (int i = 1; i <= arLst.size(); i++) {
+	        	pix = arLst.get(i);
+	        	Helper.setValue(Map, pix, i);
+	        	seLstInfoLabel[i] = i;
+	        }
+			res = new Step3HelperResult(arLst, arLst, arLst, majorityEvt0, seLstInfoLabel, Map);
+		}
+		
+		
 		
 		publish(5);
 		imageDealer.center.nEvt.setText("nSe");

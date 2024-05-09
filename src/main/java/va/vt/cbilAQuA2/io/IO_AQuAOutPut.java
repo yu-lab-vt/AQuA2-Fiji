@@ -125,7 +125,7 @@ public class IO_AQuAOutPut extends SwingWorker<Void, Integer>{
 		
 		PrintWriter pw = null;
 		try {
-			pw = new PrintWriter(new File(savePath + "\\Aqua_Output_Excel_CH" + this.ch + ".csv"));
+			pw = new PrintWriter(new File(savePath + "\\AQuA2_Output_Excel_CH" + this.ch + ".csv"));
 		} catch (FileNotFoundException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -136,6 +136,15 @@ public class IO_AQuAOutPut extends SwingWorker<Void, Integer>{
     	sb.append(',');
     	for(int i:evtLst) {
         	sb.append(i);
+        	sb.append(',');
+        }
+        sb.append('\n');
+        
+        // Starting Frame
+        sb.append("Starting Frame");
+    	sb.append(',');
+    	for(int i:evtLst) {
+        	sb.append(fts.curve.tBegin.get(i) + 1);
         	sb.append(',');
         }
         sb.append('\n');
@@ -177,11 +186,29 @@ public class IO_AQuAOutPut extends SwingWorker<Void, Integer>{
         }
         sb.append('\n');
         
+     // Max Dff
+        sb.append("Curve - Max Df");
+    	sb.append(',');
+    	for(int i:evtLst) {
+        	sb.append(fts.curve.dfMax.get(i));
+        	sb.append(',');
+        }
+        sb.append('\n');
+        
         // Max Dff
         sb.append("Curve - Max Dff");
     	sb.append(',');
     	for(int i:evtLst) {
         	sb.append(fts.curve.dffMax.get(i));
+        	sb.append(',');
+        }
+        sb.append('\n');
+        
+      //Curve - Duration 50% to 50%
+        sb.append("Curve - Duration of visualized event overlay");
+    	sb.append(',');
+    	for(int i:evtLst) {
+        	sb.append(fts.curve.duration.get(i));
         	sb.append(',');
         }
         sb.append('\n');
@@ -218,6 +245,33 @@ public class IO_AQuAOutPut extends SwingWorker<Void, Integer>{
     	sb.append(',');
     	for(int i:evtLst) {
         	sb.append(fts.curve.fall91.get(i));
+        	sb.append(',');
+        }
+        sb.append('\n');
+        
+        // datAUC
+        sb.append("Curve - dat AUC");
+    	sb.append(',');
+    	for(int i:evtLst) {
+        	sb.append(fts.curve.datAUC.get(i));
+        	sb.append(',');
+        }
+        sb.append('\n');
+        
+        // dfAUC
+        sb.append("Curve - df AUC");
+    	sb.append(',');
+    	for(int i:evtLst) {
+        	sb.append(fts.curve.dfAUC.get(i));
+        	sb.append(',');
+        }
+        sb.append('\n');
+        
+        // dffAUC
+        sb.append("Curve - dff AUC");
+    	sb.append(',');
+    	for(int i:evtLst) {
+        	sb.append(fts.curve.dffAUC.get(i));
         	sb.append(',');
         }
         sb.append('\n');
@@ -503,7 +557,7 @@ public class IO_AQuAOutPut extends SwingWorker<Void, Integer>{
     		}
     		
     		// network
-    		sb.append("Network - Temporal Density");
+    		sb.append("Network - number of events in the same location");
     		sb.append(',');
     		for(int i:evtLst) {
     			sb.append(fts.network.nOccurSameLoc[i-1][0]);
@@ -512,7 +566,7 @@ public class IO_AQuAOutPut extends SwingWorker<Void, Integer>{
     		sb.append('\n');
     		
     		// network
-    		sb.append("Network - Temporal Density With Similar Size Only");
+    		sb.append("Network - number of events in the same location with similar size only");
     		sb.append(',');
     		for(int i:evtLst) {
     			sb.append(fts.network.nOccurSameLoc[i-1][1]);
@@ -521,7 +575,7 @@ public class IO_AQuAOutPut extends SwingWorker<Void, Integer>{
     		sb.append('\n');
     		
     		// network
-    		sb.append("NetWork - Spatial Density");
+    		sb.append("NetWork - maximum number of events appearing at the same time");
     		sb.append(',');
     		for(int i:evtLst) {
     			sb.append(fts.network.nOccurSameTime[i-1]);
@@ -563,7 +617,7 @@ public class IO_AQuAOutPut extends SwingWorker<Void, Integer>{
 		
 		PrintWriter pw = null;
 		try {
-			pw = new PrintWriter(new File(savePath + "\\Aqua_Curve_Output_CH" + this.ch + ".csv"));
+			pw = new PrintWriter(new File(savePath + "\\AQuA2_Curve_Output_CH" + this.ch + ".csv"));
 		} catch (FileNotFoundException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -624,7 +678,7 @@ public class IO_AQuAOutPut extends SwingWorker<Void, Integer>{
 
 	private void exportMovie() {
 		// TODO Auto-generated method stub
-		System.out.println(savePath + "\\Aqua_Output_Movie");
+		System.out.println(savePath + "\\AQuA2_Output_Movie");
 		ImagePlus img = new ImagePlus(orgPath);
 		ImageConverter converter = new ImageConverter(img);
 		converter.convertToGray8();
@@ -660,7 +714,7 @@ public class IO_AQuAOutPut extends SwingWorker<Void, Integer>{
 			}
 		}
 		FileSaver fs = new FileSaver(img);
-		fs.saveAsTiff(savePath + "\\Aqua_Output_Movie_CH" + this.ch + ".tif");
+		fs.saveAsTiff(savePath + "\\AQuA2_Output_Movie_CH" + this.ch + ".tif");
 
 	}
 

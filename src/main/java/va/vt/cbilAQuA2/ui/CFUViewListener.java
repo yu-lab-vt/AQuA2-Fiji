@@ -56,11 +56,15 @@ public class CFUViewListener implements MouseListener {
 			int label = cfuMap[(int) y][(int) x];
 			if (label > 0) {
 				if (cfuDealer.viewPick) {
-					if (!favCFUList.contains(label))
+					if (!favCFUList.contains(label)) {
 						favCFUList.add(label);
-					else
+						ArrayList<Integer> indexLst = new ArrayList<>();
+						indexLst.add(label);
+						cfuDealer.center.resultsLabel.drawCurve(indexLst);
+					}else
 						favCFUList.remove(label);
 					CFUHelper.updateCFUTable(cfuDealer);
+					
 				} else {
 					pickList.add(label + (ch - 1) * cfuDealer.nCFUch1);
 					CFUHelper.pickShow(cfuDealer);

@@ -298,13 +298,13 @@ public class CFUDetect extends SwingWorker<Void, Integer>{
             
         }).start();
         cfuDealer.left.left2.setEnabled(true);
-        
         cfuDealer.left.addAll.setEnabled(true);
         cfuDealer.left.viewFavourite.setEnabled(true);
         cfuDealer.left.jTFwinSize.setEnabled(true);
         cfuDealer.left.winSizeSlider.setEnabled(true);
         cfuDealer.left.pick.setEnabled(true);
         cfuDealer.left.alldep.setEnabled(true);
+        cfuDealer.left.jTFshift.setEnabled(true);
     }
     
     // helper below

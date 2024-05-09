@@ -99,6 +99,8 @@ public class Opts implements Serializable{
 	public boolean detectGlo = false;
 	public boolean checkProp = false;
 	public boolean checkNetwork = false;
+	public boolean needTemp = true;
+	public boolean needSpa = true;
 	
 	@Override
 	public String toString() {

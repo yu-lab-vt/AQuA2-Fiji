@@ -132,26 +132,32 @@ public class LeftGroupPanel {
 	JLabel jTPLcircularity = new JLabel(" Circularity threshold for active region");
 	
 	// jTP3
+	public JCheckBox jTFneedTemp = new JCheckBox("",true);
+	JLabel jTPneedTemp = new JLabel(" Enable temporal segmentation?");
 	JLabel jTPLseed = new JLabel(" -------------- Seed Detection --------------");
 	JLabel jTPLmerge = new JLabel(" ---- Merge regions with similar signals ----");
 	public JTextField jTFseedSize = new JTextField("0.01");
 	public JTextField jTFzScore = new JTextField("3.5");
 	public JTextField jTFmergeDis = new JTextField("0.6");
-	JLabel jTPLseedSize = new JLabel(" Seed size relative to active region");
+	JLabel jTPLseedSize = new JLabel(" Minimum seed size / active region");
 	JLabel jTPLzScore = new JLabel(" Zscore of seed significance");
-	JLabel jTPLmergeDis = new JLabel(" Allowed maximum dissimilarity in merging");
+	JLabel jTPLmergeDis = new JLabel(" Maximum dissimilarity allowed in merging");
 	
 	// jTP4
+	public JCheckBox jTFneedSpa = new JCheckBox("",true);
+	JLabel jTPneedSpa = new JLabel(" Enable spatial segmentation?");
 	JLabel jTPLspaSeg = new JLabel(" -------- Spatial segmentation setting --------");
 	public JTextField jTFsourceRatio = new JTextField("0.01");
 	public JTextField jTFsensitivity = new JTextField("8");
-	JLabel jTPLsourceRatio = new JLabel(" Source size relative to super event");
+	JLabel jTPLsourceRatio = new JLabel(" Minimum source size / super event");
 	JLabel jTPLsensitivity = new JLabel(" Sensitivity to detect source (Level 1 to 10)");
+	public JCheckBox jTFwhetherExtend = new JCheckBox("",true);
+	JLabel jTPwhetherExtend = new JLabel(" Enable temporal extension for events?");
 	
 	// jTP5
 	public JCheckBox jTFdetectGlo = new JCheckBox("",false);
 	public JTextField jTFgloDur = new JTextField("20");
-	JLabel jTPLdetectGlo = new JLabel(" Whether detect global signal?");
+	JLabel jTPLdetectGlo = new JLabel(" Enable global signal detection?");
 	JLabel jTPLgloDur = new JLabel(" Global signal duration");
 
 	// jTP6
@@ -159,12 +165,12 @@ public class LeftGroupPanel {
 	public JCheckBox jTFignoreTau = new JCheckBox("",true);
 	public JCheckBox jTFcheckProp = new JCheckBox("",true);
 	public JCheckBox jTFcheckNetwork = new JCheckBox("",true);
-	JLabel jTPignoreTau = new JLabel(" Ignore delay Tau");
-	JLabel jTPcheckProp = new JLabel(" Propagation metric relative to starting");
+	JLabel jTPignoreTau = new JLabel(" Ignore calculating decay speed");
+	JLabel jTPcheckProp = new JLabel(" Propagation-related metrics");
 	JLabel jTPcheckProp01 = new JLabel("  ");
-	JLabel jTPcheckProp02 = new JLabel("  ");
-	JLabel jTPcheckProp1 = new JLabel(" point in different directions");
-	JLabel jTPcheckProp2 = new JLabel(" (Propagation map is already calculated)");
+//	JLabel jTPcheckProp02 = new JLabel("  ");
+	JLabel jTPcheckProp1 = new JLabel(" (Rising map is already calculated)");
+//	JLabel jTPcheckProp2 = new JLabel(" (Propagation map is already calculated)");
 	JLabel jTPcheckNetwork = new JLabel(" Network features");
 	
 	JLabel rowBlank2 = new JLabel();
@@ -383,6 +389,10 @@ public class LeftGroupPanel {
 
     	
 		// jTP3
+    	jTFneedTemp.setPreferredSize(new Dimension(80,20));
+    	jTFneedTemp.setHorizontalAlignment(JTextField.CENTER);    	
+    	jTPneedTemp.setPreferredSize(new Dimension(270,20));
+    	
     	jTPLseed.setPreferredSize(new Dimension(350,20));
     	jTPLseed.setHorizontalAlignment(JTextField.CENTER);
 //    	jTPLseed.setFont(new Font("Courier", Font.BOLD, 13));
@@ -407,6 +417,10 @@ public class LeftGroupPanel {
 //    	jTPLmergeDis.setFont(new Font("Courier", Font.BOLD, 13));
     	
 		// jTP4
+    	jTFneedSpa.setPreferredSize(new Dimension(80,20));
+    	jTFneedSpa.setHorizontalAlignment(JTextField.CENTER);    	
+    	jTPneedSpa.setPreferredSize(new Dimension(270,20));
+    	
     	jTPLspaSeg.setPreferredSize(new Dimension(350,20));
     	jTPLspaSeg.setHorizontalAlignment(JTextField.CENTER);
 //    	jTPLspaSeg.setFont(new Font("Courier", Font.BOLD, 13));
@@ -421,6 +435,9 @@ public class LeftGroupPanel {
     	jTPLsensitivity.setPreferredSize(new Dimension(270,20));
 //    	jTPLsensitivity.setFont(new Font("Courier", Font.BOLD, 13));
     	
+    	jTFwhetherExtend.setPreferredSize(new Dimension(80,20));
+    	jTFwhetherExtend.setHorizontalAlignment(JTextField.CENTER);    	
+    	jTPwhetherExtend.setPreferredSize(new Dimension(270,20));
     	
 		// jTP5
     	jTFdetectGlo.setPreferredSize(new Dimension(80,20));
@@ -445,10 +462,10 @@ public class LeftGroupPanel {
 //    	jTPcheckProp.setFont(new Font("Courier", Font.BOLD, 13));
     	jTPcheckProp1.setPreferredSize(new Dimension(270,20));
 //    	jTPcheckProp1.setFont(new Font("Courier", Font.BOLD, 13));
-    	jTPcheckProp2.setPreferredSize(new Dimension(270,20));
+//    	jTPcheckProp2.setPreferredSize(new Dimension(270,20));
 //    	jTPcheckProp2.setFont(new Font("Courier", Font.BOLD, 13));
     	jTPcheckProp01.setPreferredSize(new Dimension(80,20));
-    	jTPcheckProp02.setPreferredSize(new Dimension(80,20));
+//    	jTPcheckProp02.setPreferredSize(new Dimension(80,20));
     	
     	jTFcheckNetwork.setPreferredSize(new Dimension(80,20));
     	jTFcheckNetwork.setHorizontalAlignment(JTextField.CENTER);    	
@@ -809,26 +826,32 @@ public class LeftGroupPanel {
     	// jTP3
     	gbl = ComponentLayOut.iniGridBagLayout();
 		gbc = ComponentLayOut.iniGridBagConstraints();
-		ComponentLayOut.add(jTP3, gbl, jTPLseed, gbc, 0, 0, 2, 1, 0, 0);
-		ComponentLayOut.add(jTP3, gbl, jTFseedSize, gbc, 0, 1, 1, 1, 0, 0);
-		ComponentLayOut.add(jTP3, gbl, jTPLseedSize, gbc, 1, 1, 1, 1, 0, 0);
-		ComponentLayOut.add(jTP3, gbl, jTFzScore, gbc, 0, 2, 1, 1, 0, 0);
-		ComponentLayOut.add(jTP3, gbl, jTPLzScore, gbc, 1, 2, 1, 1, 0, 0);
-		ComponentLayOut.add(jTP3, gbl, jTPLmerge, gbc, 0, 3, 2, 1, 0, 0);
-		ComponentLayOut.add(jTP3, gbl, jTFmergeDis, gbc, 0, 4, 1, 1, 0, 0);
-		ComponentLayOut.add(jTP3, gbl, jTPLmergeDis, gbc, 1, 4, 1, 1, 0, 0);
+		ComponentLayOut.add(jTP3, gbl, jTFneedTemp, gbc, 0, 0, 1, 1, 0, 0);
+		ComponentLayOut.add(jTP3, gbl, jTPneedTemp, gbc, 1, 0, 1, 1, 0, 0);
+		ComponentLayOut.add(jTP3, gbl, jTPLseed, gbc, 0, 1, 2, 1, 0, 0);
+		ComponentLayOut.add(jTP3, gbl, jTFseedSize, gbc, 0, 2, 1, 1, 0, 0);
+		ComponentLayOut.add(jTP3, gbl, jTPLseedSize, gbc, 1, 2, 1, 1, 0, 0);
+		ComponentLayOut.add(jTP3, gbl, jTFzScore, gbc, 0, 3, 1, 1, 0, 0);
+		ComponentLayOut.add(jTP3, gbl, jTPLzScore, gbc, 1, 3, 1, 1, 0, 0);
+		ComponentLayOut.add(jTP3, gbl, jTPLmerge, gbc, 0, 4, 2, 1, 0, 0);
+		ComponentLayOut.add(jTP3, gbl, jTFmergeDis, gbc, 0, 5, 1, 1, 0, 0);
+		ComponentLayOut.add(jTP3, gbl, jTPLmergeDis, gbc, 1, 5, 1, 1, 0, 0);
 		
     	jTP3.setBorder(BorderFactory.createTitledBorder("Super events and events"));
     	
     	// jTP4
     	gbl = ComponentLayOut.iniGridBagLayout();
 		gbc = ComponentLayOut.iniGridBagConstraints();
-		ComponentLayOut.add(jTP4, gbl, jTPLspaSeg, gbc, 0, 0, 2, 1, 0, 0);
-		ComponentLayOut.add(jTP4, gbl, jTFsourceRatio, gbc, 0, 1, 1, 1, 0, 0);
-		ComponentLayOut.add(jTP4, gbl, jTPLsourceRatio, gbc, 1, 1, 1, 1, 0, 0);
-		ComponentLayOut.add(jTP4, gbl, jTFsensitivity, gbc, 0, 2, 1, 1, 0, 0);
-		ComponentLayOut.add(jTP4, gbl, jTPLsensitivity, gbc, 1, 2, 1, 1, 0, 0);
-
+		ComponentLayOut.add(jTP4, gbl, jTFneedSpa, gbc, 0, 0, 1, 1, 0, 0);
+		ComponentLayOut.add(jTP4, gbl, jTPneedSpa, gbc, 1, 0, 1, 1, 0, 0);
+		ComponentLayOut.add(jTP4, gbl, jTPLspaSeg, gbc, 0, 1, 2, 1, 0, 0);
+		ComponentLayOut.add(jTP4, gbl, jTFsourceRatio, gbc, 0, 2, 1, 1, 0, 0);
+		ComponentLayOut.add(jTP4, gbl, jTPLsourceRatio, gbc, 1, 2, 1, 1, 0, 0);
+		ComponentLayOut.add(jTP4, gbl, jTFsensitivity, gbc, 0, 3, 1, 1, 0, 0);
+		ComponentLayOut.add(jTP4, gbl, jTPLsensitivity, gbc, 1, 3, 1, 1, 0, 0);
+		ComponentLayOut.add(jTP4, gbl, jTFwhetherExtend, gbc, 0, 4, 1, 1, 0, 0);
+		ComponentLayOut.add(jTP4, gbl, jTPwhetherExtend, gbc, 1, 4, 1, 1, 0, 0);
+		
     	jTP4.setBorder(BorderFactory.createTitledBorder("Events"));
     	
     	// jTP5
@@ -849,10 +872,10 @@ public class LeftGroupPanel {
 		ComponentLayOut.add(jTP6, gbl, jTPcheckProp, gbc, 1, 1, 1, 1, 0, 0);
 		ComponentLayOut.add(jTP6, gbl, jTPcheckProp01, gbc, 0, 2, 1, 1, 0, 0);
 		ComponentLayOut.add(jTP6, gbl, jTPcheckProp1, gbc, 1, 2, 1, 1, 0, 0);
-		ComponentLayOut.add(jTP6, gbl, jTPcheckProp02, gbc, 0, 3, 1, 1, 0, 0);
-		ComponentLayOut.add(jTP6, gbl, jTPcheckProp2, gbc, 1, 3, 1, 1, 0, 0);
-		ComponentLayOut.add(jTP6, gbl, jTFcheckNetwork, gbc, 0, 4, 1, 1, 0, 0);
-		ComponentLayOut.add(jTP6, gbl, jTPcheckNetwork, gbc, 1, 4, 1, 1, 0, 0);
+//		ComponentLayOut.add(jTP6, gbl, jTPcheckProp02, gbc, 0, 3, 1, 1, 0, 0);
+//		ComponentLayOut.add(jTP6, gbl, jTPcheckProp2, gbc, 1, 3, 1, 1, 0, 0);
+		ComponentLayOut.add(jTP6, gbl, jTFcheckNetwork, gbc, 0, 3, 1, 1, 0, 0);
+		ComponentLayOut.add(jTP6, gbl, jTPcheckNetwork, gbc, 1, 3, 1, 1, 0, 0);
     	jTP6.setBorder(BorderFactory.createTitledBorder("Feature extraction"));
 		
 		// left2
@@ -1263,17 +1286,19 @@ public class LeftGroupPanel {
 						imageDealer.step2Start();
 						break;
 					case 2:
+						boolean needTemp = jTFneedTemp.isSelected();
 						float seedSzRatio = Float.parseFloat(jTFseedSize.getText());
 						float sigThr = Float.parseFloat(jTFzScore.getText());
 						float maxDelay = Float.parseFloat(jTFmergeDis.getText());
-						imageDealer.setStep3(seedSzRatio, sigThr, maxDelay);
+						imageDealer.setStep3(needTemp, seedSzRatio, sigThr, maxDelay);
 						imageDealer.step3Start();
 						break;
 					case 3:
+						boolean needSpa = jTFneedSpa.isSelected();
 						float sourceSzRatio = Float.parseFloat(jTFsourceRatio.getText());
 						int sourceSensitivity = Integer.parseInt(jTFsensitivity.getText());
-
-						imageDealer.setStep4(sourceSzRatio, sourceSensitivity);
+						boolean whetherExtend = jTFwhetherExtend.isSelected();
+						imageDealer.setStep4(needSpa, sourceSzRatio, sourceSensitivity,whetherExtend);
 						imageDealer.step4Start();
 						break;
 					case 4:
@@ -1575,14 +1600,17 @@ public class LeftGroupPanel {
 				
 				imageDealer.setStep2(thrArscl, minDur, minSize, maxSize, circularity);
 				
+				boolean needTemp = jTFneedTemp.isSelected();
 				float seedSzRatio = Float.parseFloat(jTFseedSize.getText());
 				float sigThr = Float.parseFloat(jTFzScore.getText());
 				float maxDelay = Float.parseFloat(jTFmergeDis.getText());
-				imageDealer.setStep3(seedSzRatio, sigThr, maxDelay);
+				imageDealer.setStep3(needTemp, seedSzRatio, sigThr, maxDelay);
 				
+				boolean needSpa = jTFneedSpa.isSelected();
 				float sourceSzRatio = Float.parseFloat(jTFsourceRatio.getText());
 				int sourceSensitivity = Integer.parseInt(jTFsensitivity.getText());
-				imageDealer.setStep4(sourceSzRatio, sourceSensitivity);
+				boolean whetherExtend = jTFwhetherExtend.isSelected();
+				imageDealer.setStep4(needSpa, sourceSzRatio, sourceSensitivity,whetherExtend);
 				
 				boolean detectGlo = jTFdetectGlo.isSelected();
 				int gloDur = Integer.parseInt(jTFgloDur.getText());

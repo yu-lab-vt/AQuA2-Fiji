@@ -147,107 +147,129 @@ public class Step4 extends SwingWorker<int[][][], Integer> {
 			}
 		}
 		
+		HashMap<Integer, ArrayList<int[]>> evtLst;
+		HashMap<Integer, RiseInfo> riseLst;
 		int gaptxx = opts.gapExt;
 		int H = opts.H;
 		int W = opts.W;
 		int T = opts.T;
-		int[][][] seMap = new int[H][W][T];
-		ArrayList<int[]> pix, se0, pix0;
-		HashMap<Integer, Step3MajorityResult> major0;
-		for (int i = 1; i <= seLst.size(); i++) {
-			pix = seLst.get(i);
-			Helper.setValue(seMap, pix, i);
-		}
-		
-		publish(2);
-		System.out.println("Detecting events ...");
-		HashMap<Integer, RiseInfo> riseLst = new HashMap<Integer, RiseInfo>(); 
 		int[][][] datR = new int[H][W][T];
 		int[][][] datL = new int[H][W][T];
-		int nEvt = 0;
-		HashSet<Integer> ihw0;
-		ArrayList<Integer> svLabels;
-		HashMap<Integer, ArrayList<int[]>> superVoxels;
-		int x0, x1, y0, y1, t0, t1, H0, W0, T0, gapt;
-		int[] p;
-		Step3MajorityResult curMajor;
-		float[][][] dF0;
-		int[][][] seMap0;
-		for(int nn = 1; nn <= seLst.size(); nn++) {
-			se0 = seLst.get(nn);
+		
+		if (opts.needSpa)
+		{
 			
-			// super event pixel transform
-			x0 = H; x1 = 0; y0 = W; y1 = 0; t0 = T; t1 = 0;
-			
-			for (int i = 0; i < se0.size(); i++) {
-				p = se0.get(i);
-				x0 = Math.min(x0, p[0]); x1 = Math.max(x1, p[0]);
-				y0 = Math.min(y0, p[1]); y1 = Math.max(y1, p[1]);
-				t0 = Math.min(t0, p[2]); t1 = Math.max(t1, p[2]);
+			int[][][] seMap = new int[H][W][T];
+			ArrayList<int[]> pix, se0, pix0;
+			HashMap<Integer, Step3MajorityResult> major0;
+			for (int i = 1; i <= seLst.size(); i++) {
+				pix = seLst.get(i);
+				Helper.setValue(seMap, pix, i);
 			}
-			gapt = Math.min(t1 - t0, gaptxx);
-			t0 = Math.max(t0 - gapt, 0); t1 = Math.min(t1 + gapt, T - 1);
-			H0 = x1 - x0 + 1; W0 = y1 - y0 + 1; T0 = t1 - t0 + 1;
-			ihw0 = new HashSet<Integer>();
-			for (int i = 0; i < se0.size(); i++) {
-				p = se0.get(i);
-				ihw0.add(Helper.sub2ind(H0, W0, p[0] - x0, p[1] - y0));
-			} 
-			
-			// sub event pixel transform
-			svLabels = new ArrayList<Integer>();
-			major0 = new HashMap<Integer, Step3MajorityResult>();
-			for (int i = 1; i < seLabel.length; i++) {
-				if (seLabel[i] == nn)
-					svLabels.add(i);
-			}
-			superVoxels = new HashMap<Integer, ArrayList<int[]>>();
-			
-			for (int k = 0; k < svLabels.size(); k++) {
-				pix = svLst.get(svLabels.get(k));
-				pix0 = new ArrayList<int[]>();
-				for (int i = 0; i < pix.size(); i++) {
-					p = pix.get(i);
-					pix0.add(new int[] {p[0] - x0, p[1] - y0, p[2] - t0});
-				}
-				superVoxels.put(k + 1, pix0);
+		
+		
+		
+			publish(2);
+			System.out.println("Detecting events ...");
+			riseLst = new HashMap<Integer, RiseInfo>(); 
+			datR = new int[H][W][T];
+			datL = new int[H][W][T];
+			int nEvt = 0;
+			HashSet<Integer> ihw0;
+			ArrayList<Integer> svLabels;
+			HashMap<Integer, ArrayList<int[]>> superVoxels;
+			int x0, x1, y0, y1, t0, t1, H0, W0, T0, gapt;
+			int[] p;
+			Step3MajorityResult curMajor;
+			float[][][] dF0;
+			int[][][] seMap0;
+			for(int nn = 1; nn <= seLst.size(); nn++) {
+				se0 = seLst.get(nn);
 				
-				curMajor = majorInfo.get(svLabels.get(k));
-				curMajor.t0 -= t0;
-				curMajor.t1 -= t0;
-				curMajor.ihw = new HashSet<Integer>();
-				if(curMajor.ihwDelays.size() >= opts.minSize) {
-					for (Map.Entry<Integer, Integer> entry : curMajor.ihwDelays.entrySet()) {
-						p = Helper.ind2sub(H, W, entry.getKey());
-						curMajor.ihw.add(Helper.sub2ind(H0, W0, p[0] - x0, p[1] - y0));
+				// super event pixel transform
+				x0 = H; x1 = 0; y0 = W; y1 = 0; t0 = T; t1 = 0;
+				
+				for (int i = 0; i < se0.size(); i++) {
+					p = se0.get(i);
+					x0 = Math.min(x0, p[0]); x1 = Math.max(x1, p[0]);
+					y0 = Math.min(y0, p[1]); y1 = Math.max(y1, p[1]);
+					t0 = Math.min(t0, p[2]); t1 = Math.max(t1, p[2]);
+				}
+				gapt = Math.min(t1 - t0, gaptxx);
+				t0 = Math.max(t0 - gapt, 0); t1 = Math.min(t1 + gapt, T - 1);
+				H0 = x1 - x0 + 1; W0 = y1 - y0 + 1; T0 = t1 - t0 + 1;
+				ihw0 = new HashSet<Integer>();
+				for (int i = 0; i < se0.size(); i++) {
+					p = se0.get(i);
+					ihw0.add(Helper.sub2ind(H0, W0, p[0] - x0, p[1] - y0));
+				} 
+				
+				// sub event pixel transform
+				svLabels = new ArrayList<Integer>();
+				major0 = new HashMap<Integer, Step3MajorityResult>();
+				for (int i = 1; i < seLabel.length; i++) {
+					if (seLabel[i] == nn)
+						svLabels.add(i);
+				}
+				superVoxels = new HashMap<Integer, ArrayList<int[]>>();
+				
+				for (int k = 0; k < svLabels.size(); k++) {
+					pix = svLst.get(svLabels.get(k));
+					pix0 = new ArrayList<int[]>();
+					for (int i = 0; i < pix.size(); i++) {
+						p = pix.get(i);
+						pix0.add(new int[] {p[0] - x0, p[1] - y0, p[2] - t0});
 					}
+					superVoxels.put(k + 1, pix0);
 					
-				}				
-				major0.put(k + 1, curMajor);
-			}
-			
-			System.out.println("SE: " + nn);
-			dF0 = Helper.crop3D(dF, x0, x1, y0, y1, t0, t1);
-			seMap0 = Helper.crop3D(seMap, x0, x1, y0, y1, t0, t1);
-			Step4Se2EvtRes curRes = Step4Helper.se2evt(dF0, seMap0, nn, ihw0, t0, t1, superVoxels, major0, opts);
-			Step4Helper.addToRisingMap(riseLst, curRes, nEvt, x0, x1, y0, y1);
-			
-			// update
-			for (int x = 0; x < H0; x++) {
-				for (int y = 0; y < W0; y++) {
-					for (int t = 0; t < T0; t++) {
-						if (curRes.evtL[x][y][t] > 0) {
-							seMap[x + x0][y + y0][t + t0] = nn;
-							datL[x + x0][y + y0][t + t0] = Math.max(datL[x + x0][y + y0][t + t0], curRes.evtL[x][y][t] + nEvt);
+					curMajor = majorInfo.get(svLabels.get(k));
+					curMajor.t0 -= t0;
+					curMajor.t1 -= t0;
+					curMajor.ihw = new HashSet<Integer>();
+					if(curMajor.ihwDelays.size() >= opts.minSize) {
+						for (Map.Entry<Integer, Integer> entry : curMajor.ihwDelays.entrySet()) {
+							p = Helper.ind2sub(H, W, entry.getKey());
+							curMajor.ihw.add(Helper.sub2ind(H0, W0, p[0] - x0, p[1] - y0));
 						}
-						datR[x + x0][y + y0][t + t0] = (int) Math.max(datR[x + x0][y + y0][t + t0], curRes.evtRecon[x][y][t] * 255);
+						
+					}				
+					major0.put(k + 1, curMajor);
+				}
+				
+				System.out.println("SE: " + nn);
+				dF0 = Helper.crop3D(dF, x0, x1, y0, y1, t0, t1);
+				seMap0 = Helper.crop3D(seMap, x0, x1, y0, y1, t0, t1);
+				Step4Se2EvtRes curRes = Step4Helper.se2evt(dF0, seMap0, nn, ihw0, t0, t1, superVoxels, major0, opts);
+				Step4Helper.addToRisingMap(riseLst, curRes, nEvt, x0, x1, y0, y1);
+				
+				// update
+				for (int x = 0; x < H0; x++) {
+					for (int y = 0; y < W0; y++) {
+						for (int t = 0; t < T0; t++) {
+							if (curRes.evtL[x][y][t] > 0) {
+								seMap[x + x0][y + y0][t + t0] = nn;
+								datL[x + x0][y + y0][t + t0] = Math.max(datL[x + x0][y + y0][t + t0], curRes.evtL[x][y][t] + nEvt);
+							}
+							datR[x + x0][y + y0][t + t0] = (int) Math.max(datR[x + x0][y + y0][t + t0], curRes.evtRecon[x][y][t] * 255);
+						}
 					}
 				}
+				nEvt += curRes.nEvt0;
 			}
-			nEvt += curRes.nEvt0;
+			evtLst = Helper.label2idx(datL);
+			showTime();
+		
+		} else {
+			evtLst = seLst;
+			datR = null;
+			riseLst = null;
+			datL = new int[H][W][T]; 
+	        ArrayList<int[]> pix;
+	        for (int i = 1; i <= evtLst.size(); i++) {
+	        	pix = evtLst.get(i);
+	        	Helper.setValue(datL, pix, i);
+	        }
 		}
-		HashMap<Integer, ArrayList<int[]>> evtLst = Helper.label2idx(datL);
-		showTime();
 		
 		publish(3);
 		imageDealer.center.nEvt.setText("nEvt");

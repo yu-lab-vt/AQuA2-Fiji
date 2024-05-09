@@ -40,15 +40,16 @@ public class CFUCalDep extends SwingWorker<Void, Integer>{
 
 	CFUDealer cfuDealer = null;
 	int winSize = 0;
-	
+	int shift = 0;
 	/**
 	 * Construct the class by imageDealer. 
 	 * 
 	 * @param imageDealer used to read the parameter
 	 */
-	public CFUCalDep(CFUDealer cfuDealer, int winSize){
+	public CFUCalDep(CFUDealer cfuDealer, int winSize, int shift){
 		this.cfuDealer = cfuDealer;
 		this.winSize = winSize;
+		this.shift = shift;
 	}
 	
 	   /**
@@ -77,8 +78,6 @@ public class CFUCalDep extends SwingWorker<Void, Integer>{
 			}
 		}
 		
-		
-		
 		publish(1);
 		
 		boolean[] seq1;
@@ -92,8 +91,8 @@ public class CFUCalDep extends SwingWorker<Void, Integer>{
 			for (int j = i + 1; j <= nCFU1 + nCFU2; j++) {
 				seq1 = seqs[i - 1];
 				seq2 = seqs[j - 1];
-				depRes depRes1 = CFUHelper.calDependency(seq1, seq2, maxDist);
-				depRes depRes2 = CFUHelper.calDependency(seq2, seq1, maxDist);
+				depRes depRes1 = CFUHelper.calDependency(seq1, seq2, shift, maxDist);
+				depRes depRes2 = CFUHelper.calDependency(seq2, seq1, shift, maxDist);
 				
 				if (depRes1.p < depRes2.p) {
 					curRes = depRes1;

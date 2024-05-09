@@ -13,6 +13,7 @@ public class Curve implements Serializable{
 	public HashMap<Integer, int[]> rgt1 = null;
 	public HashMap<Integer, Integer> tBegin = null;
 	public HashMap<Integer, Integer> tEnd = null;
+	public HashMap<Integer, Float> dfMax = null;
 	public HashMap<Integer, Float> dffMax = null;
 	public HashMap<Integer, Float> dffMax2 = null;
 	public HashMap<Integer, Integer> dffMaxFrame = null;
@@ -26,6 +27,7 @@ public class Curve implements Serializable{
 	public HashMap<Integer, Integer> dff1Begin = null;
 	public HashMap<Integer, Integer> dff1End = null;
 	public HashMap<Integer, Float> datAUC = null;
+	public HashMap<Integer, Float> dfAUC = null;
 	public HashMap<Integer, Float> dffAUC = null;
 	
 	public Curve() {
@@ -34,6 +36,7 @@ public class Curve implements Serializable{
 		rgt1 = new HashMap<>();
 		tBegin = new HashMap<>();
 		tEnd = new HashMap<>();
+		dfMax = new HashMap<>();
 		dffMax = new HashMap<>();
 		dffMax2 = new HashMap<>();
 		dffMaxFrame = new HashMap<>();
@@ -47,6 +50,7 @@ public class Curve implements Serializable{
 		dff1Begin = new HashMap<>();
 		dff1End = new HashMap<>();
 		datAUC = new HashMap<>();
+		dfAUC = new HashMap<>();
 		dffAUC = new HashMap<>();
 	}
 	

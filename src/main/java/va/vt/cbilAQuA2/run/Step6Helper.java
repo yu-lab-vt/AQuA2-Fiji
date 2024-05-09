@@ -1082,7 +1082,7 @@ public class Step6Helper {
 		ArrayList<int[]> pix0;
 		HashSet<Integer> ihw;
 		float sigma1;
-		float[] charx1, charxBg1, dff1, charx2, dff2, dff1e;
+		float[] charx1, charxBg1, dff1, charx2, dff2, dff1e, df1;
 		boolean[] sigxOthers;
 		int[] rgT1;
 		int rghs, rghe, rgws, rgwe, rgts, rgte;
@@ -1114,19 +1114,29 @@ public class Step6Helper {
 			int its = rgts;
 			int ite = rgte;
 			charx1 = Helper.getAvgCurve(dat, ihw);
+			for (int t = 0; t < T; t++) {
+				charx1[t] = charx1[t] * (opts.maxValueDat - opts.minValueDat) + opts.minValueDat;	
+			}
 			sigma1 = avgDatNoiseEst(charx1,ihw,opts);
 			
 			// correct baseline method
 			charxBg1 = getBaseline(charx1, Tww, opts.cut);
 			dff1 = new float[T];
+			df1 = new float[T];
 			for (int t = 0; t < T; t++) {
 				charxBg1[t] -= baselineBias * sigma1;
+				df1[t] = charx1[t] - charxBg1[t];
 				dff1[t] = (charx1[t] - charxBg1[t]) / (charxBg1[t] + 0.0001f);
 			}
 			float sigma1dff = Math.max(0.0001f, Helper.estimateNoiseByMean(dff1));
+			float dfMax1 = Float.NEGATIVE_INFINITY;
 			float dffMax1 = Float.NEGATIVE_INFINITY;
 			charx2 = Helper.getAvgCurve(datx, ihw);
+			for (int t = 0; t < T; t++) {
+				charx2[t] = charx2[t] * (opts.maxValueDat - opts.minValueDat) + opts.minValueDat;	
+			}
 			for (int t = rgts; t <= rgte; t++) {
+				dfMax1 = Math.max(dfMax1, df1[t]);
 				dffMax1 = Math.max(dffMax1, dff1[t]);
 				charx2[t] = charx1[t];
 			}
@@ -1184,8 +1194,8 @@ public class Step6Helper {
 			for(int t=0;t<T;t++) {
 				dffMat[i-1][t][0] = dff1[t];
 				dffMat[i-1][t][1] = dff2[t];
-				dMat[i-1][t][0] = charx1[t] * (opts.maxValueDat - opts.minValueDat) + opts.minValueDat;
-				dMat[i-1][t][1] = charx2[t] * (opts.maxValueDat - opts.minValueDat) + opts.minValueDat;
+				dMat[i-1][t][0] = charx1[t];
+				dMat[i-1][t][1] = charx2[t];
 			}
 			
 			// table value
@@ -1206,6 +1216,7 @@ public class Step6Helper {
 			ftsLst.loc.xSpaTemp.put(i, pix0);
 			ftsLst.loc.xSpa.put(i, ihw);
 			ftsLst.curve.rgt1.put(i, rgT1);
+			ftsLst.curve.dfMax.put(i, dfMax1);
 			ftsLst.curve.dffMax.put(i, dffMax1);
 			ftsLst.curve.dffMax2.put(i, dffMax2);
 			ftsLst.curve.dffMaxFrame.put(i, tMax + rgts);
@@ -1232,12 +1243,15 @@ public class Step6Helper {
 			
 			// AUC
 			float datAUC = 0;
+			float dfAUC = 0;
 			float dffAUC = 0;
 			for (int t = its; t <= ite; t++) {
 				datAUC += charx1[t];
+				dfAUC += df1[t];
 				dffAUC += dff1[t];
 			}
 			ftsLst.curve.datAUC.put(i, datAUC);
+			ftsLst.curve.dfAUC.put(i, dfAUC);
 			ftsLst.curve.dffAUC.put(i, dffAUC);
 			
 			// basic features

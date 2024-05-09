@@ -14,6 +14,7 @@ import javax.swing.ImageIcon;
 import javax.swing.JFrame;
 
 import va.vt.cbilAQuA2.cfu.CFUInfo;
+import va.vt.cbilAQuA2.cfu.CFUOpts;
 import va.vt.cbilAQuA2.cfu.CFUPreResult;
 import va.vt.cbilAQuA2.cfu.GroupInfo;
 import va.vt.cbilAQuA2.ui.CFUCenterPanel;
@@ -112,9 +113,13 @@ public class CFUDealer {
 	}
 	
 	public void returnResults() {
+		
+		CFUOpts cfuOpts = new CFUOpts(this);
+		
 		imageDealer.cfuInfo1 = this.cfuInfo1;
 		imageDealer.groupInfo = this.groupInfo;
 		imageDealer.cfuInfo2 = this.cfuInfo2;
+		imageDealer.cfuOpts = cfuOpts;
 	}
 
 	public void close() {

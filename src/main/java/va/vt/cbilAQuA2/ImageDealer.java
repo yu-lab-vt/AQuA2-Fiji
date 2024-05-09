@@ -24,6 +24,7 @@ import javax.swing.JFrame;
 import ij.ImagePlus;
 import ij.ImageStack;
 import ij.process.ImageProcessor;
+import va.vt.cbilAQuA2.cfu.CFUOpts;
 import va.vt.cbilAQuA2.cfu.CFUInfo;
 import va.vt.cbilAQuA2.cfu.CFUPreResult;
 import va.vt.cbilAQuA2.cfu.GroupInfo;
@@ -89,6 +90,7 @@ public class ImageDealer {
 	public CFUPreResult cfu_pre1 = null;
 	public HashMap<Integer, CFUInfo> cfuInfo1 = null;
 	public HashMap<Integer, GroupInfo> groupInfo = null;
+	public CFUOpts cfuOpts = null;
 	public ImagePlus imgPlus1 = null;
 	ImageProcessor imgProcessor1 = null;
 	public HashMap<Integer, RiseInfo> riseLst1 = null;
@@ -679,6 +681,9 @@ public class ImageDealer {
 		int endY = (int)(endPoint.getY());
 
 		BufferedImage prod = new BufferedImage(endX - startX, endY - startY, BufferedImage.TYPE_3BYTE_BGR);
+		if (riseLst == null) {
+			return prod;
+		}
 		
 		float[][] riseMapCol = new float[w][h];
 		for(int x=0;x<w;x++) {
@@ -1116,7 +1121,8 @@ public class ImageDealer {
 		
 	} 
 	
-	public void setStep3(float seedSzRatio, float sigThr, float maxDelay) {
+	public void setStep3(boolean needTemp, float seedSzRatio, float sigThr, float maxDelay) {
+		opts.needTemp = needTemp;
 		opts.seedSzRatio = seedSzRatio;
 		opts.sigThr = sigThr;
 		opts.maxDelay = maxDelay;
@@ -1139,9 +1145,11 @@ public class ImageDealer {
         });
 		
 	}
-	public void setStep4(float sourceSzRatio, int sourceSensitivity) {
+	public void setStep4(boolean needSpa, float sourceSzRatio, int sourceSensitivity, boolean whetherExtend) {
+		opts.needSpa = needSpa;
 		opts.sourceSzRatio = sourceSzRatio;
 		opts.sourceSensitivity = sourceSensitivity;
+		opts.whetherExtend = whetherExtend;
 	}
 	
 	

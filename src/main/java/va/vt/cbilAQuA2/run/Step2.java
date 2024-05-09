@@ -340,7 +340,7 @@ public class Step2 extends SwingWorker<int[][][], Integer> {
 		}).start();
 		imageDealer.saveStatus();
 		imageDealer.running = false;
-		imageDealer.center.rightJCB.setSelectedIndex(1);
+		imageDealer.center.rightJCB.setSelectedIndex(5);
 		if (!imageDealer.opts.singleChannel)
 			imageDealer.center.leftJCB.setSelectedIndex(1);
 	}

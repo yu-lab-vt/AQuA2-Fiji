@@ -268,8 +268,12 @@ public class Step1 extends SwingWorker<int[][][], Integer>{
         imageDealer.right.typeJCB.setEnabled(true);
 
         if(opts.singleChannel) {
-        	imageDealer.center.rightJCB.setSelectedIndex(6);
+        	imageDealer.center.leftJCB.setSelectedIndex(1);
+        	imageDealer.center.rightJCB.setSelectedIndex(5);
     		imageDealer.center.sideButton.setSelected(true);
+        }else {
+        	imageDealer.center.leftJCB.setSelectedIndex(1);
+        	imageDealer.center.rightJCB.setSelectedIndex(1);
         }
         
         imageDealer.saveStatus();

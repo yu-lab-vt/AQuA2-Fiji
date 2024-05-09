@@ -36,7 +36,7 @@ public class CFUHelper {
 	static long start;
 	static long end;
 	
-	public static depRes calDependency(boolean[] seq1, boolean[] seq2, int maxDist) {
+	public static depRes calDependency(boolean[] seq1, boolean[] seq2, int shift, int maxDist) {
 		// TODO Auto-generated method stub
 		
 		int T = seq1.length;
@@ -45,8 +45,8 @@ public class CFUHelper {
 		for (int t = 0; t < T; t++) {
 			if (seq2[t])
 				lambda += 1;
-			if (seq1[t])
-				seq1Occur.add(t);
+			if (seq1[t] && t + shift < T)
+				seq1Occur.add(t + shift);
 		}
 		lambda /= T;
 		float minPvalue = 1;
@@ -93,9 +93,10 @@ public class CFUHelper {
 					}
 				}
 				
+				
 				if (minDelay < Integer.MAX_VALUE) {
 					count++;
-					delays.put(minDelay, delays.getOrDefault(minDelay, 0) + 1);
+					delays.put(minDelay + shift, delays.getOrDefault(minDelay + shift, 0) + 1);
 				}
 			}
 			
@@ -208,7 +209,7 @@ public class CFUHelper {
 		int tPre = 0;
 		for (int t = t0; t >= 0; t--) {
 			if (occupy[t]) {
-				tPre = t;
+				tPre = t + 1;
 				break;
 			}
 		}

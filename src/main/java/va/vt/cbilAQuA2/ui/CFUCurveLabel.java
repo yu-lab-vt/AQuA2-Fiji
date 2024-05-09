@@ -78,6 +78,7 @@ public class CFUCurveLabel extends JLabel {
 			int label1 = cfuIds.get(0);
 			int label2 = cfuIds.get(1);
 			int maxDist = Integer.parseInt(cfuDealer.left.jTFwinSize.getText());
+			int shift = Integer.parseInt(cfuDealer.left.jTFshift.getText());
 			boolean[] seq1, seq2;
 			if (label1 <= cfuDealer.nCFUch1)
 				seq1 = cfuDealer.cfuInfo1.get(label1).occurrence;
@@ -88,8 +89,8 @@ public class CFUCurveLabel extends JLabel {
 			else
 				seq2 = cfuDealer.cfuInfo2.get(label2 - cfuDealer.nCFUch1).occurrence;
 			
-			depRes depRes1 = CFUHelper.calDependency(seq1, seq2, maxDist);
-			depRes depRes2 = CFUHelper.calDependency(seq2, seq1, maxDist);
+			depRes depRes1 = CFUHelper.calDependency(seq1, seq2, shift, maxDist);
+			depRes depRes2 = CFUHelper.calDependency(seq2, seq1, shift, maxDist);
 			float pValue = Math.min(depRes1.p,depRes2.p);
 			g.setColor(Color.BLACK);
 			g.drawString(" p-value dependency: " + pValue, width-200, 50);

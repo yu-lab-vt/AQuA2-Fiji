@@ -56,13 +56,13 @@ public class CFULeftPanel {
 	
 	// left 1
 	JLabel lDetect = new JLabel(" CFU detections");
-	public JTextField jTFoverThr = new JTextField("0.3");
-	public JTextField jTFminEvt = new JTextField("2");
+	public JTextField jTFoverThr = new JTextField("0.5");
+	public JTextField jTFminEvt = new JTextField("3");
 	JLabel jTPLoverThr = new JLabel(" Overlap threshold");
 	JLabel jTPLminEvt = new JLabel(" Minimum number of events of CFU");
 	
-	public JTextField jTFoverThr2 = new JTextField("0.3");
-	public JTextField jTFminEvt2 = new JTextField("2");
+	public JTextField jTFoverThr2 = new JTextField("0.5");
+	public JTextField jTFminEvt2 = new JTextField("3");
 	JLabel jTPLoverThr2 = new JLabel(" Overlap threshold (CH2)");
 	JLabel jTPLminEvt2 = new JLabel(" Minimum number of events of CFU (CH2)");
 	
@@ -79,6 +79,8 @@ public class CFULeftPanel {
 	JLabel jTPLwindowSize = new JLabel(" --- Window size for calculating depedency ---");
 	public JTextField jTFwinSize = new JTextField("0");
 	public JSlider winSizeSlider = new JSlider(JSlider.HORIZONTAL, 0, 100, 0);
+	public JTextField jTFshift = new JTextField("0");
+	JLabel jTPshift = new JLabel(" Dependency with shift (frames)");
 	public JToggleButton pick = new JToggleButton("Pick CFUs");
 	public JButton alldep = new JButton("All dependencies");
 	JLabel jTPLpick = new JLabel(" Pick CFUs (onlye keep 2)");
@@ -86,8 +88,8 @@ public class CFULeftPanel {
 	
 	// left 3
 	JLabel lGroup = new JLabel(" Group");
-	public JTextField jTFpThr = new JTextField("0.01");
-	public JTextField jTFminCFU = new JTextField("2");
+	public JTextField jTFpThr = new JTextField("0.00001");
+	public JTextField jTFminCFU = new JTextField("3");
 	JLabel jTPLpThr = new JLabel(" p value significance of dependency threshold");
 	JLabel jTPLminCFU = new JLabel(" Minimum number of CFUs in each group");
 	public JButton groupRun = new JButton("Run");
@@ -165,6 +167,10 @@ public class CFULeftPanel {
 		jTFwinSize.setPreferredSize(new Dimension(140,20));
 		jTFwinSize.setHorizontalAlignment(JTextField.CENTER);
 		winSizeSlider.setPreferredSize(new Dimension(240,20));
+		
+		jTFshift.setPreferredSize(new Dimension(140,20));
+		jTFshift.setHorizontalAlignment(JTextField.CENTER);
+		jTPshift.setPreferredSize(new Dimension(240,20));
 
 		pick.setPreferredSize(new Dimension(140,20));
 //		jTPLpick.setFont(new Font("Courier", Font.BOLD, 13));
@@ -199,13 +205,13 @@ public class CFULeftPanel {
 		
 		// panel
 		left1.setPreferredSize(new Dimension(400,200));
-		left2.setPreferredSize(new Dimension(400,200));
+		left2.setPreferredSize(new Dimension(400,210));
 		left3.setPreferredSize(new Dimension(400,120));
 		left4.setPreferredSize(new Dimension(400,70));
 		rowBlank1.setPreferredSize(new Dimension(400,10));
 		rowBlank2.setPreferredSize(new Dimension(400,10));
 		rowBlank3.setPreferredSize(new Dimension(400,10));
-		rowBlank4.setPreferredSize(new Dimension(400,230));
+		rowBlank4.setPreferredSize(new Dimension(400,220));
 		panel.setPreferredSize(new Dimension(400,850));
 	}
 	
@@ -241,10 +247,12 @@ public class CFULeftPanel {
 		ComponentLayOut.add(left2, gbl, jTPLwindowSize, gbc, 0, 3, 2, 1, 0, 0);
 		ComponentLayOut.add(left2, gbl, jTFwinSize, gbc, 0, 4, 1, 1, 0, 0);    	
 		ComponentLayOut.add(left2, gbl, winSizeSlider, gbc, 1, 4, 1, 1, 0, 0); 
-		ComponentLayOut.add(left2, gbl, pick, gbc, 0, 5, 1, 1, 0, 0);    	
-		ComponentLayOut.add(left2, gbl, jTPLpick, gbc, 1, 5, 1, 1, 0, 0);  
-		ComponentLayOut.add(left2, gbl, alldep, gbc, 0, 6, 1, 1, 0, 0);    	
-		ComponentLayOut.add(left2, gbl, jTPLalldep, gbc, 1, 6, 1, 1, 0, 0);  
+		ComponentLayOut.add(left2, gbl, jTFshift, gbc, 0, 5, 1, 1, 0, 0);    	
+		ComponentLayOut.add(left2, gbl, jTPshift, gbc, 1, 5, 1, 1, 0, 0); 
+		ComponentLayOut.add(left2, gbl, pick, gbc, 0, 6, 1, 1, 0, 0);    	
+		ComponentLayOut.add(left2, gbl, jTPLpick, gbc, 1, 6, 1, 1, 0, 0);  
+		ComponentLayOut.add(left2, gbl, alldep, gbc, 0, 7, 1, 1, 0, 0);    	
+		ComponentLayOut.add(left2, gbl, jTPLalldep, gbc, 1, 7, 1, 1, 0, 0);  
 		left2.setBorder(BorderFactory.createEtchedBorder());
 		
 		
@@ -290,6 +298,7 @@ public class CFULeftPanel {
 		winSizeSlider.setEnabled(false);
 		pick.setEnabled(false);
 		alldep.setEnabled(false);
+		jTFshift.setEnabled(false);
 		
 		// left 3
 		jTFpThr.setEnabled(false);
@@ -424,11 +433,11 @@ public class CFULeftPanel {
 		alldep.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				int winSize = Integer.parseInt(jTFwinSize.getText());
-				
+				int shift = Integer.parseInt(jTFshift.getText());
 				EventQueue.invokeLater(new Runnable() {
 		            public void run() {
 		                try {
-		                	CFUCalDep task = new CFUCalDep(cfuDealer, winSize);
+		                	CFUCalDep task = new CFUCalDep(cfuDealer, winSize, shift);
 		            		task.setting();
 		            		task.execute();
 		                } catch (Exception e) {
