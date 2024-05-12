@@ -1,5 +1,6 @@
 package va.vt.cbilAQuA2.run;
 
+import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.io.FileNotFoundException;
@@ -7,6 +8,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Random;
 import java.util.concurrent.ExecutionException;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
@@ -107,7 +109,7 @@ public class Step5 extends SwingWorker<int[][][], Integer> {
 		publish(1);
 		// ------------------------ Read Data ----------------------------- //
 		start = System.currentTimeMillis();
-		Opts opts = new Opts(1);
+		Opts opts = imageDealer.opts;
 		int H = imageDealer.dF1.length;
 		int W = imageDealer.dF1[0].length;
 		int T = imageDealer.dF1[0][0].length;
@@ -125,7 +127,6 @@ public class Step5 extends SwingWorker<int[][][], Integer> {
 				dF = imageDealer.dF1;
 				try {
 					evtLocalLst = Helper.readObjectFromFile(proPath, "evt1.ser", evtLocalLst.getClass());
-					opts = Helper.readObjectFromFile(proPath, "opts.ser", opts.getClass());
 				} catch (FileNotFoundException e) {
 					e.printStackTrace();
 				} catch (IOException e) {
@@ -137,7 +138,6 @@ public class Step5 extends SwingWorker<int[][][], Integer> {
 				dF = imageDealer.dF2;
 				try {
 					evtLocalLst = Helper.readObjectFromFile(proPath, "evt2.ser", evtLocalLst.getClass());
-					opts = Helper.readObjectFromFile(proPath, "opts.ser", opts.getClass());
 				} catch (FileNotFoundException e) {
 					e.printStackTrace();
 				} catch (IOException e) {
@@ -154,30 +154,72 @@ public class Step5 extends SwingWorker<int[][][], Integer> {
 			int[][][] activeMap = new int[H][W][T];		
 			
 			// load setting
+			int orgMinDur = opts.minDur;
 			opts.minDur = opts.gloDur;
 			HashMap<Integer, ArrayList<int[]>> arLst = Step2Helper.acDetect(dF_glo, activeMap, evtSpatialMask, 1, opts);
-			Step3HelperResult res3 = Step3Helper.seDetection(dF_glo, imageDealer.dat1, arLst, opts);
-			Step4Res res = Step4Helper.se2evtTop(dF_glo, res3.seLst, res3.evtLst, res3.seLabel, res3.majorInfo, opts);
+			
+			Step3HelperResult res3;
+			if (opts.needTemp) {
+				res3 = Step3Helper.seDetection(dF_glo, imageDealer.dat1, arLst, opts);
+			}else {
+				HashMap<Integer, Step3MajorityResult> majorityEvt0 = Step3Helper.getMajority_Ac(arLst, arLst, dF_glo, opts);
+				int[][][] Map = new int[H][W][T]; 
+		        ArrayList<int[]> pix;
+		        int[] seLstInfoLabel = new int[arLst.size() + 1];
+		        for (int i = 1; i <= arLst.size(); i++) {
+		        	pix = arLst.get(i);
+		        	Helper.setValue(Map, pix, i);
+		        	seLstInfoLabel[i] = i;
+		        }
+				res3 = new Step3HelperResult(arLst, arLst, arLst, majorityEvt0, seLstInfoLabel, Map);
+			}
+					
+			Step4Res res;
+			if (opts.needSpa){
+				res = Step4Helper.se2evtTop(dF_glo, res3.seLst, res3.evtLst, res3.seLabel, res3.majorInfo, opts);
+			}else {
+		        res =  new Step4Res(null, res3.seLst, null, res3.Map);
+			}
 			
 			showTime();
+			opts.minDur = orgMinDur;
+			
+			int colorBase = imageDealer.colorBase;
+			Random rv = new Random();
+			Color[] labelColors = new Color[res.evtLst.size() + 1];
+			for(int i=0;i<labelColors.length;i++) {
+				labelColors[i] = new Color(colorBase + rv.nextInt(256-colorBase), colorBase + rv.nextInt(256-colorBase),colorBase + rv.nextInt(256-colorBase));
+			}
+			
+			
 			
 			publish(3);
 			if (ch == 1) {
 				try {
 					Helper.writeObjectToFile(proPath, "gloRiseLst1.ser", res.riseLst);  
 		   			Helper.writeObjectToFile(proPath, "gloEvt1.ser", res.evtLst);  
+		   			Helper.writeObjectToFile(proPath, "gloDatR1.ser", res.datR);  
+		   			
 				} catch (Exception e) {
 					e.printStackTrace();
 				}
 				imageDealer.label1 = res.datL;
+				imageDealer.datR1 = res.datR;
+				imageDealer.labelColors1 = labelColors;
+				imageDealer.center.EvtNumber.setText(res.evtLst.size() +"");
 			} else {
 				try {
 					Helper.writeObjectToFile(proPath, "gloRiseLst2.ser", res.riseLst);  
 		   			Helper.writeObjectToFile(proPath, "gloEvt2.ser", res.evtLst);  
+		   			Helper.writeObjectToFile(proPath, "gloDatR2.ser", res.datR);  
+		   			
 				} catch (Exception e) {
 					e.printStackTrace();
 				}
 				imageDealer.label2 = res.datL;
+				imageDealer.datR2 = res.datR;
+				imageDealer.labelColors2 = labelColors;
+				imageDealer.center.EvtNumber.setText(imageDealer.center.EvtNumber.getText() + "|" +  res.evtLst.size());
 			}
 		}
 	}

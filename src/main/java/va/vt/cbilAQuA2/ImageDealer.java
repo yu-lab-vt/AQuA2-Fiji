@@ -831,7 +831,7 @@ public class ImageDealer {
 	}
 	
 	public BufferedImage dealDF(int contrast, boolean leftChannel) {
-		System.out.println("Show dF");
+//		System.out.println("Show dF");
 		BufferedImage origImage = imgPlus1.getBufferedImage();
 		adjustPoint(origImage);
 		

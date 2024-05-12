@@ -1,5 +1,6 @@
 package va.vt.cbilAQuA2.run;
 
+import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.io.FileNotFoundException;
@@ -7,6 +8,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Random;
 import java.util.concurrent.ExecutionException;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
@@ -222,6 +224,13 @@ public class Step3 extends SwingWorker<int[][][], Integer> {
 			res = new Step3HelperResult(arLst, arLst, arLst, majorityEvt0, seLstInfoLabel, Map);
 		}
 		
+		// Saves
+		int colorBase = imageDealer.colorBase;
+		Random rv = new Random();
+		Color[] labelColors = new Color[res.seLst.size() + 1];
+		for(int i=0;i<labelColors.length;i++) {
+			labelColors[i] = new Color(colorBase + rv.nextInt(256-colorBase), colorBase + rv.nextInt(256-colorBase),colorBase + rv.nextInt(256-colorBase));
+		}
 		
 		
 		publish(5);
@@ -239,6 +248,7 @@ public class Step3 extends SwingWorker<int[][][], Integer> {
 				e.printStackTrace();
 			}
 			imageDealer.label1 = res.Map;
+			imageDealer.labelColors1 = labelColors;
 		} else {
 			imageDealer.center.EvtNumber.setText(imageDealer.center.EvtNumber.getText() + "|" + res.seLst.size());
 			try {
@@ -252,6 +262,7 @@ public class Step3 extends SwingWorker<int[][][], Integer> {
 				e.printStackTrace();
 			}
 			imageDealer.label2 = res.Map;
+			imageDealer.labelColors2 = labelColors;
 		}
 		
 	}

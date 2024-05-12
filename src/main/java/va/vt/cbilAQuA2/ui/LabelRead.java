@@ -1,5 +1,6 @@
 package va.vt.cbilAQuA2.ui;
 
+import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.io.File;
@@ -11,6 +12,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Random;
 import java.util.concurrent.ExecutionException;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
@@ -127,14 +129,60 @@ public class LabelRead extends SwingWorker<int[][][], Integer> {
 				Helper.setValue(labels, entry.getValue(), entry.getKey());
 			}
 		}
+		
+		int colorBase = imageDealer.colorBase;
+		Random rv = new Random();
+		Color[] labelColors = new Color[evts.size() + 1];
+		for(int i=0;i<labelColors.length;i++) {
+			labelColors[i] = new Color(colorBase + rv.nextInt(256-colorBase), colorBase + rv.nextInt(256-colorBase),colorBase + rv.nextInt(256-colorBase));
+		}
+		
 		if (ch == 1) {
 			imageDealer.label1 = labels;
 			imageDealer.center.EvtNumber.setText(evts.size() +"");
+			imageDealer.datR1 = loadDatR(index, ch);
+			imageDealer.labelColors1 = labelColors;
 		} else {
 			imageDealer.label2 = labels;
 			imageDealer.center.EvtNumber.setText(imageDealer.center.EvtNumber.getText() + "|" + evts.size());
+			imageDealer.datR2 = loadDatR(index, ch);
+			imageDealer.labelColors2 = labelColors;
 		}
 			
+	}
+	
+	protected int[][][] loadDatR(int index, int ch) {
+		if (index < 5)
+			return null;
+		
+		int[][][] datR = new int[1][1][1];
+		String datRFile = "";
+		if (ch == 1) {
+			if(index == 5)
+				datRFile = "datR1.ser";
+			else if(index == 6){
+				datRFile = "gloDatR1.ser";
+			}
+				
+		}else {
+			if(index == 5)
+				datRFile = "datR2.ser";
+			else if(index == 6){
+				datRFile = "gloDatR2.ser";
+			}
+		}
+		
+		
+		try {
+			datR = Helper.readObjectFromFile(proPath, datRFile, datR.getClass());
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
+		} catch (ClassNotFoundException e) {
+			e.printStackTrace();
+		}
+		return datR;
 	}
 	
 	protected void process(List<Integer> chunks) {

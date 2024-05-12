@@ -1,5 +1,6 @@
 package va.vt.cbilAQuA2.run;
 
+import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.io.FileNotFoundException;
@@ -9,6 +10,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Random;
 import java.util.concurrent.ExecutionException;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
@@ -273,16 +275,27 @@ public class Step4 extends SwingWorker<int[][][], Integer> {
 		
 		publish(3);
 		imageDealer.center.nEvt.setText("nEvt");
+		// Save
+		int colorBase = imageDealer.colorBase;
+		Random rv = new Random();
+		Color[] labelColors = new Color[evtLst.size() + 1];
+		for(int i=0;i<labelColors.length;i++) {
+			labelColors[i] = new Color(colorBase + rv.nextInt(256-colorBase), colorBase + rv.nextInt(256-colorBase),colorBase + rv.nextInt(256-colorBase));
+		}
+		
+		
 		
 		if (ch == 1) {
 			imageDealer.riseLst1 = riseLst;
 			imageDealer.center.EvtNumber.setText(evtLst.size() +"");
 			imageDealer.label1 = datL;
 			imageDealer.datR1 = datR;
+			imageDealer.labelColors1 = labelColors;
 			try {
 				Helper.writeObjectToFile(proPath, "riseLst1.ser", riseLst);  
 	   			Helper.writeObjectToFile(proPath, "evt1.ser", evtLst);  
 	   			Helper.writeObjectToFile(proPath, "datR1.ser", datR);  
+	   			Helper.writeObjectToFile(proPath, "evtColor1.ser", labelColors);  
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
@@ -291,10 +304,12 @@ public class Step4 extends SwingWorker<int[][][], Integer> {
 			imageDealer.center.EvtNumber.setText(imageDealer.center.EvtNumber.getText() + "|" +  evtLst.size());
 			imageDealer.label2 = datL;
 			imageDealer.datR2 = datR;
+			imageDealer.labelColors2 = labelColors;
 			try {
 				Helper.writeObjectToFile(proPath, "riseLst2.ser", riseLst);  
 	   			Helper.writeObjectToFile(proPath, "evt2.ser", evtLst);  
 	   			Helper.writeObjectToFile(proPath, "datR2.ser", datR);  
+	   			Helper.writeObjectToFile(proPath, "evtColor2.ser", labelColors);  
 			} catch (Exception e) {
 				e.printStackTrace();
 			}

@@ -1,5 +1,6 @@
 package va.vt.cbilAQuA2.run;
 
+import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.io.File;
@@ -122,12 +123,14 @@ public class Step6 extends SwingWorker<Step6Result, Integer> {
 		publish(1);
 		float[][][] datOrg;
 		int[][][] label = new int[opts.H][opts.W][opts.T];
+		Color[] labelColors = new Color[1];
 		
 		if (ch == 1) {
 			datOrg = imageDealer.dat1;
 			try {
 				evtLst = Helper.readObjectFromFile(proPath, "evt1.ser", evtLst.getClass());
 				datR = Helper.readObjectFromFile(proPath, "datR1.ser", datR.getClass());
+				labelColors = Helper.readObjectFromFile(proPath, "evtColor1.ser", labelColors.getClass());
 			} catch (FileNotFoundException e) {
 				e.printStackTrace();
 			} catch (IOException e) {
@@ -142,11 +145,14 @@ public class Step6 extends SwingWorker<Step6Result, Integer> {
 			}
 			imageDealer.label1 = label;
 			imageDealer.nEvtCh1 = evtLst.size();
+			imageDealer.labelColors1 = labelColors;
+			imageDealer.datR1 = datR;
 		} else {
 			datOrg = imageDealer.dat2;
 			try {
 				evtLst = Helper.readObjectFromFile(proPath, "evt2.ser", evtLst.getClass());
 				datR = Helper.readObjectFromFile(proPath, "datR2.ser", datR.getClass());
+				labelColors = Helper.readObjectFromFile(proPath, "evtColor2.ser", labelColors.getClass());
 			} catch (FileNotFoundException e) {
 				e.printStackTrace();
 			} catch (IOException e) {
@@ -160,6 +166,8 @@ public class Step6 extends SwingWorker<Step6Result, Integer> {
 				Helper.setValue(label, evtLst.get(i), i);
 			}
 			imageDealer.label2 = label;
+			imageDealer.labelColors2 = labelColors;
+			imageDealer.datR2 = datR;
 		}
 		
 		imageDealer.center.nEvt.setText("nEvt");

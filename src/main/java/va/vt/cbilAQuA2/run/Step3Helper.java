@@ -38,17 +38,15 @@ public class Step3Helper {
 		// seed detection
         System.out.println("Seed detection");
         start = System.currentTimeMillis();
-        curRegions = seedDetect2DSAccelerate(Helper.copy3Darray(dF), datOrg, Map, arLst, opts);
+        curRegions = Step3Helper.seedDetect2DSAccelerate(Helper.copy3Darray(dF), datOrg, Map, arLst, opts);
         sdLst = Helper.label2idx(Map);
         
         showTime();
         
         // marker controlled watershed
         System.out.println("Watershed grow");
-        curRegions = markerControlledSplitting_Ac(Map, sdLst, curRegions, dF, opts);
-        
-//        // load from matlab result -- to be deleted
-        Map = Helper.loadMatlabStep2Result();       
+        curRegions = Step3Helper.markerControlledSplitting_Ac(Map, sdLst, curRegions, dF, opts);
+         
         
         evtLst = Helper.label2idx(Map);
         
@@ -62,21 +60,21 @@ public class Step3Helper {
         
         // select major part
         System.out.println("Select majority part");
-        HashMap<Integer, Step3MajorityResult> majorityEvt0 = getMajority_Ac(sdLst, evtLst, dF, opts);
+        HashMap<Integer, Step3MajorityResult> majorityEvt0 = Step3Helper.getMajority_Ac(sdLst, evtLst, dF, opts);
         
         
         // according to curve, refine
         System.out.println("Refining");
-        boolean[] isGood = majorCurveFilter2(datOrg, dF, sdLst, evtLst, majorityEvt0, opts);
+        boolean[] isGood = Step3Helper.majorCurveFilter2(datOrg, dF, sdLst, evtLst, majorityEvt0, opts);
         sdLst = Helper.filterWithMask(sdLst, isGood);
         evtLst = Helper.filterWithMask(evtLst, isGood);
         majorityEvt0 = Helper.filterWithMaskMajor(majorityEvt0, isGood);
         
         // merge to super event
         System.out.println("Merging signals with similar temporal patterns");
-        Step3MergingInfo mergingInfo = createMergingInfo(evtLst, majorityEvt0, curRegions, opts);
+        Step3MergingInfo mergingInfo = Step3Helper.createMergingInfo(evtLst, majorityEvt0, curRegions, opts);
         seLst = new HashMap<Integer, ArrayList<int[]>>();
-        seLstInfoLabel = mergingSEbyInfo_UpdateSpa(evtLst, majorityEvt0, mergingInfo, curRegions, opts, seLst);
+        seLstInfoLabel = Step3Helper.mergingSEbyInfo_UpdateSpa(evtLst, majorityEvt0, mergingInfo, curRegions, opts, seLst);
         
         // label to Map
         Map = new int[H][W][T]; 
