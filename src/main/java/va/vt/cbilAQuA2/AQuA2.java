@@ -61,10 +61,16 @@ public class AQuA2 implements PlugIn {
     		JOptionPane.showMessageDialog(null, "Need to download MorphoLib.jar", "Message", JOptionPane.INFORMATION_MESSAGE);
     	}
     	
+    	
+//    	System.setProperty("jna.debug_load", "true");
+    	
     	try {
 		    Pointer[] pIniCut = Helper.jna2DArray(new float[1][1]);
 		    float[][] distMatrix = new float[3][3];
 			float[] res = Helper.DTW_Edge_input(distMatrix);
+//			System.out.println(res[0]);
+			
+//			Helper.BILCO(float[][] ref, float[][] tst, int[][] Gij, float smo, float[][] initialCut)
     	}catch (Exception e){
     		JOptionPane.showMessageDialog(null, "Need to update Jna lib", "Message", JOptionPane.INFORMATION_MESSAGE);
     	}

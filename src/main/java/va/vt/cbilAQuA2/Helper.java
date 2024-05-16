@@ -3202,7 +3202,7 @@ public class Helper {
 		// TODO Auto-generated method stub
 		String os = System.getProperty("os.name").toLowerCase();
 		if (os.contains("win")) {
-	        return ".dll";
+	        return "_win.dll";
 	    } else if (os.contains("nix") || os.contains("nux")) {
 	    	return ".so";
 	    } else if (os.contains("mac")){
