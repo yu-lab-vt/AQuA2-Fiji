@@ -364,7 +364,7 @@ public class Step1Helper {
 	    int p;
 	    for (int i = 0; i < F0ProList.size(); i++) {
 	    	curX = F0ProList.get(i);
-	    	p = Math.max(0, (int) Math.ceil((curX - minX) / delta) - 1);
+	    	p = Math.min(Math.max(0, (int) Math.ceil((curX - minX) / delta) - 1), size - 1);
 	    	countMap[p]++;
 	    	sumX[p] += curX;
 	    	sumY[p] += varMapList.get(i);

@@ -15,7 +15,7 @@ Optional:
 
 4. If there is a reminder "Need to update Jna lib" during use, replace "Fiji.app\jars\jna-x.x.x.jar" by "jna-jpms-5.13.0.jar"
 
-5. We have algorithms compiled into .dll files. Microsoft visual C++ is required, you may install it from [here](https://learn.microsoft.com/en-us/cpp/windows/latest-supported-vc-redist).
+5. Some algorithms are coded in C++ and compiled into dynamic libraries. On Windows systems, Microsoft Visual C++ redistributable is required, which can be obtained from [here](https://learn.microsoft.com/en-us/cpp/windows/latest-supported-vc-redist). For Linux system, g++11 or higher version is required.
 
 # How to use:
 
